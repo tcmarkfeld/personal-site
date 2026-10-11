@@ -1,5 +1,10 @@
 import { ArrowUpRight } from 'lucide-react';
+import { lazy, Suspense } from 'react';
 import { CopyButton } from '@/components/CopyButton';
+
+const ReviseBench = lazy(() =>
+  import('./ReviseBench').then((module) => ({ default: module.ReviseBench })),
+);
 
 const brewCommand = 'brew install --cask tcmarkfeld/tap/revise';
 
@@ -160,6 +165,20 @@ export function Revise() {
           </a>
         </p>
       </section>
+
+      <section className="column prose" data-reveal>
+        <h2 className="label">The whole thing, as a machine</h2>
+        <p>
+          If it helps to picture it: a PDF is like a page of metal type where
+          every letter got glued down wherever it landed, and Revise does the
+          typesetting in reverse.
+        </p>
+      </section>
+      <div className="post-figure revise-bench-wrap">
+        <Suspense fallback={<div className="revise-bench-placeholder" />}>
+          <ReviseBench />
+        </Suspense>
+      </div>
     </>
   );
 }

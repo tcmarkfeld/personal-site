@@ -315,3 +315,16 @@
     display: none;
   }
 }
+
+/* The anatomy figure at the end of the Revise post. */
+.revise-bench-wrap {
+  margin-top: 20px;
+}
+.revise-bench-placeholder {
+  aspect-ratio: 600 / 470;
+  border-radius: 14px;
+  background: var(--card);
+}
+.revise-bench .iso-figure {
+  margin: 0;
+}
