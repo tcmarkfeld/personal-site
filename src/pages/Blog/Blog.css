@@ -328,3 +328,17 @@
 .revise-bench .iso-figure {
   margin: 0;
 }
+/* Touch screens can't hover or use arrow keys. */
+@media (hover: none) {
+  .revise-bench .iso-plate-corner[data-corner='hint'] {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .revise-bench .iso-plate-corner[data-corner='readout'] {
+    left: 0;
+    line-height: 1.4;
+    text-align: right;
+    white-space: normal;
+  }
+}
