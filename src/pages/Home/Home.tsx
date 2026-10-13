@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type MouseEvent,
   type ReactNode,
 } from 'react';
 import {
@@ -101,6 +102,99 @@ const casings = [
 ];
 
 const inks = ['var(--strong)', '#2f6bff', '#dd704b', '#1f9d6b'];
+
+// A soft spring: a slight overshoot, then settles.
+const SPRING =
+  'linear(0, 0.06 3%, 0.22 7%, 0.45 12%, 0.68 18%, 0.85 25%, 0.95 32%, 1.01 40%, 1.025 48%, 1.02 58%, 1.005 72%, 1)';
+const jobMotion = new WeakMap<HTMLDetailsElement, Animation[]>();
+
+// Opens a job card on a spring with its content arriving in turn, and closes it
+// with the content lifting away before the card folds shut.
+function toggleJob(event: MouseEvent<HTMLElement>) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  event.preventDefault();
+  const summary = event.currentTarget;
+  const job = summary.parentElement as HTMLDetailsElement;
+  const body = job.querySelector<HTMLElement>('.job-body')!;
+  const logo = job.querySelector<HTMLElement>('.job-logo')!;
+  const from = job.offsetHeight;
+  jobMotion.get(job)?.forEach((animation) => animation.cancel());
+  job.dataset.animating = '';
+
+  if (!job.open || 'closing' in job.dataset) {
+    delete job.dataset.closing;
+    job.open = true;
+    const grow = job.animate(
+      { height: [`${from}px`, `${job.offsetHeight}px`] },
+      { duration: 620, easing: SPRING },
+    );
+    grow.onfinish = () => delete job.dataset.animating;
+    const items = [
+      ...body.querySelectorAll<HTMLElement>(':scope > p, .job-foot > *'),
+    ];
+    jobMotion.set(job, [
+      grow,
+      ...items.map((item, i) =>
+        item.animate(
+          [
+            { opacity: 0, transform: 'translateY(10px)', filter: 'blur(6px)' },
+            { opacity: 1, transform: 'none', filter: 'blur(0)' },
+          ],
+          {
+            duration: 560,
+            delay: 90 + i * 60,
+            easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+            fill: 'backwards',
+          },
+        ),
+      ),
+      logo.animate(
+        [
+          { transform: 'none' },
+          { transform: 'rotate(-9deg) scale(1.1)', offset: 0.3 },
+          { transform: 'rotate(4deg) scale(1.04)', offset: 0.6 },
+          { transform: 'none' },
+        ],
+        { duration: 700, easing: 'ease-out' },
+      ),
+    ]);
+    return;
+  }
+
+  job.dataset.closing = '';
+  const shrink = job.animate(
+    { height: [`${from}px`, `${summary.offsetHeight}px`] },
+    { duration: 440, easing: 'cubic-bezier(0.65, 0, 0.35, 1)' },
+  );
+  shrink.onfinish = () => {
+    job.open = false;
+    delete job.dataset.closing;
+    delete job.dataset.animating;
+    jobMotion.get(job)?.forEach((animation) => animation.cancel());
+  };
+  jobMotion.set(job, [
+    shrink,
+    body.animate(
+      [
+        { opacity: 1, transform: 'none', filter: 'blur(0)' },
+        {
+          opacity: 0,
+          transform: 'translateY(-8px) scale(0.98)',
+          filter: 'blur(4px)',
+        },
+      ],
+      { duration: 220, easing: 'cubic-bezier(0.4, 0, 1, 1)', fill: 'forwards' },
+    ),
+    logo.animate(
+      [
+        { transform: 'none' },
+        { transform: 'scale(0.9)' },
+        { transform: 'none' },
+      ],
+      { duration: 420, easing: 'ease-in-out' },
+    ),
+  ]);
+}
 
 function capitalize(word: string) {
   return word[0].toUpperCase() + word.slice(1);
@@ -324,7 +418,7 @@ export const Home = () => {
           <div className="jobs">
             {experience.map((job) => (
               <details className="job" key={job.company}>
-                <summary>
+                <summary onClick={toggleJob}>
                   <img
                     className="job-logo"
                     src={job.logo}

@@ -610,6 +610,16 @@
   gap: 2px;
   margin-inline: -10px;
 }
+.job {
+  border-radius: 12px;
+  transition: background-color 0.35s ease;
+}
+.job[open]:not([data-closing]) {
+  background: var(--card);
+}
+.job[data-animating] {
+  overflow: clip;
+}
 .job summary {
   display: grid;
   grid-template-columns: 32px minmax(0, 1fr) auto 14px;
@@ -624,8 +634,7 @@
 .job summary::-webkit-details-marker {
   display: none;
 }
-.job summary:hover,
-.job[open] summary {
+.job summary:hover {
   background: var(--card);
 }
 .job-logo {
@@ -655,14 +664,27 @@
 }
 .job-toggle {
   color: var(--muted);
-  transition: rotate 0.25s ease;
+  transition: rotate 0.55s
+    linear(
+      0,
+      0.06 3%,
+      0.22 7%,
+      0.45 12%,
+      0.68 18%,
+      0.85 25%,
+      0.95 32%,
+      1.01 40%,
+      1.025 48%,
+      1.02 58%,
+      1.005 72%,
+      1
+    );
 }
-.job[open] .job-toggle {
+.job[open]:not([data-closing]) .job-toggle {
   rotate: 45deg;
 }
 .job-body {
   padding: 10px 10px 18px 54px;
-  animation: job-open 0.3s ease;
 }
 .job-body p {
   font-size: 14px;
@@ -689,13 +711,6 @@
 .job-foot a:hover {
   color: var(--accent);
 }
-@keyframes job-open {
-  from {
-    opacity: 0;
-    translate: 0 -4px;
-  }
-}
-
 /* Gallery of gadgets */
 .work {
   padding-top: 72px;
