@@ -711,109 +711,95 @@
 .job-foot a:hover {
   color: var(--accent);
 }
-/* Gallery of gadgets */
+/* Work: wide panels, each with a details column */
 .work {
   padding-top: 72px;
 }
 .work-intro {
   font-size: 14px;
 }
-.gallery-sticky {
-  position: sticky;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  height: 100vh;
-  overflow: hidden;
+.projects {
+  display: grid;
+  gap: 56px;
+  width: min(760px, calc(100% - 32px));
+  margin: 28px auto 0;
 }
-.gallery-track {
-  --gutter: max(20px, calc((100vw - 440px) / 2));
-  display: flex;
-  gap: 12px;
-  padding-left: var(--gutter);
-  will-change: transform;
+.project {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 16px;
+  align-items: start;
 }
-.gallery-track::after {
-  content: '';
-  flex: 0 0 calc(var(--gutter) - 12px);
+.project-panel {
+  margin: 0;
 }
-.gadget-card {
-  position: relative;
-  flex: 0 0 auto;
-  width: clamp(260px, 28vw, 340px);
-}
-.gadget-stage {
+.project-stage {
   display: grid;
   place-items: center;
-  aspect-ratio: 1 / 1.08;
+  aspect-ratio: 4 / 3;
   overflow: hidden;
-  border-radius: 26px;
+  border-radius: 18px;
   background: var(--card);
 }
-.gadget-card h3 {
-  margin: 14px 4px 2px;
-  color: var(--strong);
-  font-size: 14px;
-  font-weight: 500;
+.project-panel figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
 }
-.gadget-card p {
-  margin-inline: 4px;
-  font-size: 13px;
+.project-info {
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--card);
+  font-size: 12px;
   line-height: 1.5;
 }
-.gadget-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+.project-info h3 {
+  margin-bottom: 14px;
+  color: var(--strong);
+  font-size: 13px;
+  font-weight: 500;
 }
-.gadget-link::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 26px;
-}
-.gadget-card:has(.gadget-link):hover .gadget-link {
-  color: var(--accent);
-}
-.gallery-controls {
-  display: flex;
-  gap: 6px;
-  margin-top: 22px;
-  padding-inline: max(20px, calc((100vw - 440px) / 2));
-}
-.gallery-controls button {
+.project-info dl {
   display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: var(--card);
-  color: var(--text);
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 12px;
+  margin: 0;
 }
-.gallery-controls button:hover {
+.project-info .project-about {
+  grid-column: 1 / -1;
+}
+.project-info dt {
+  margin-bottom: 2px;
+  color: var(--muted);
+}
+.project-info dd {
+  margin: 0;
   color: var(--strong);
 }
-@media (max-width: 760px), (prefers-reduced-motion: reduce) {
-  .gallery-sticky {
-    position: static;
-    height: auto;
-    padding-top: 20px;
+.project-info dd a {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.project-info dd a:hover {
+  color: var(--accent);
+}
+.project-stage .device {
+  width: min(62%, 340px);
+}
+.project-stage .phone-shot {
+  width: min(28%, 150px);
+}
+@media (max-width: 640px) {
+  .project {
+    grid-template-columns: 1fr;
   }
-  .gallery-track {
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--gutter);
-    scrollbar-width: none;
+  .project-stage .device {
+    width: 78%;
   }
-  .gallery-track::-webkit-scrollbar {
-    display: none;
-  }
-  .gadget-card {
-    width: min(78vw, 320px);
-    scroll-snap-align: start;
+  .project-stage .phone-shot {
+    width: 34%;
   }
 }
 
@@ -841,7 +827,7 @@
   background-image: radial-gradient(circle, #ffffff14 0.6px, transparent 0.8px);
   background-size: 7px 7px;
 }
-.gadget-card:hover .device {
+.project:hover .device {
   translate: 0 -4px;
 }
 .device text {
@@ -1054,7 +1040,7 @@
   height: auto;
   border-radius: 19px;
 }
-.gadget-card:hover .phone-shot {
+.project:hover .phone-shot {
   rotate: 0deg;
   translate: 0 -6px;
 }

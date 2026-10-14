@@ -79,7 +79,6 @@ const details = [
   { label: 'Studied', value: 'Master’s & B.S., MIS, University of Alabama' },
   { label: 'Reach for', value: 'C#/.NET, TypeScript, React, AWS, Terraform' },
 ];
-
 const stPeteTime = new Intl.DateTimeFormat('en-US', {
   timeZone: 'America/New_York',
   hour: 'numeric',
@@ -412,7 +411,6 @@ export const Home = () => {
             , building the systems behind AI-powered marketing.
           </p>
         </section>
-
         <section className="column" id="experience" data-reveal>
           <h2 className="label">Experience</h2>
           <div className="jobs">
