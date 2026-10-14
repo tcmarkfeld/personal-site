@@ -120,7 +120,7 @@ export function CorollaIceDelivery() {
         </section>
       ))}
 
-      <section className="column case-part">
+      <section className="column post-links">
         <a
           className="chip"
           href="https://corollaicedelivery.com/"

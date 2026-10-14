@@ -16,6 +16,7 @@
   --sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --mono: 'Geist Mono', ui-monospace, monospace;
   --hand: 'Caveat', cursive;
+  --section-gap: 48px;
 }
 
 :root[data-theme='dark'] {
@@ -121,7 +122,7 @@ body {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   cursor: pointer;
 }

@@ -473,7 +473,7 @@ export const Home = () => {
 
         <ActivityGraph user="tcmarkfeld" />
 
-        <section className="column" data-reveal>
+        <section className="column currently" data-reveal>
           <h2 className="label">Currently</h2>
           <dl className="details">
             {details.map((item) => (

@@ -16,7 +16,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 10px !important;
+  margin-bottom: 10px;
   font-size: 13px;
 }
 .post-kicker img {
@@ -34,8 +34,8 @@
   display: flex;
   justify-content: center;
   gap: 16px;
-  width: min(900px, calc(100% - 32px));
-  margin: 48px auto 0;
+  width: min(900px, calc(100% - 40px));
+  margin: var(--section-gap) auto 0;
   padding: 36px 28px 28px;
   border-radius: 28px;
   background: var(--card);
@@ -76,13 +76,13 @@
   font-size: 13px;
 }
 .case-note {
-  margin-top: 10px !important;
+  margin-top: 10px;
   color: var(--muted);
   font: 11px var(--mono);
   text-align: center;
 }
 .post main > .column:not(.post-intro) {
-  padding-top: 40px;
+  padding-top: var(--section-gap);
 }
 .case-part p {
   font-size: 15px;
@@ -215,8 +215,8 @@
   display: block;
 }
 .post-figure {
-  width: min(760px, calc(100% - 32px));
-  margin: 40px auto 0;
+  width: min(760px, calc(100% - 40px));
+  margin: var(--section-gap) auto 0;
 }
 .post-figure img {
   display: block;
@@ -251,7 +251,7 @@
   margin-bottom: 6px;
 }
 .blog-lede {
-  margin-bottom: 28px !important;
+  margin-bottom: 28px;
 }
 .post-list {
   display: grid;
@@ -322,7 +322,6 @@
 }
 .revise-bench-placeholder {
   aspect-ratio: 600 / 470;
-  border-radius: 14px;
   background: var(--card);
 }
 .revise-bench .iso-figure {

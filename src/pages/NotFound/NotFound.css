@@ -5,33 +5,110 @@
   min-height: 100svh;
   padding-block: 96px;
 }
-.lost-sea {
+
+/* The chart: a dot-grid panel like the project devices */
+.lost-chart {
   position: relative;
-  height: 170px;
-  margin-bottom: 28px;
-  overflow: hidden;
+  margin: 0 0 28px;
   border-radius: 24px;
-  background: var(--card);
+  background-color: var(--card);
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--strong) 9%, transparent) 0.6px,
+    transparent 0.8px
+  );
+  background-size: 7px 7px;
+  color: var(--muted);
+}
+.lost-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  clip-path: inset(0 round 24px);
+}
+.lost-chart text {
+  fill: currentColor;
+  stroke: none;
+  font: 7px var(--mono);
+}
+.lost-grid {
+  opacity: 0.35;
+  stroke-dasharray: 2 5;
+}
+.lost-contour {
+  opacity: 0.6;
+  stroke-dasharray: 0.01 4;
+}
+.lost-shore,
+.lost-sail {
+  fill: var(--raised);
+}
+.lost-shore,
+.lost-tower,
+.lost-boat {
+  color: var(--strong);
+}
+.lost-tower {
+  fill: var(--raised);
+}
+.lost-lamp,
+.lost-north,
+.lost-sail-accent {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+.lost-beam {
+  transform-origin: 55px 112px;
+  animation: lost-sweep 5s ease-in-out infinite;
+}
+.lost-course {
+  color: var(--accent);
+  stroke-width: 1.6;
+  stroke-dasharray: 0.01 6;
+  animation: lost-course 1.8s linear infinite;
+}
+.lost-wave {
+  opacity: 0.7;
+  animation: lost-wave 4s ease-in-out infinite;
+}
+.lost-needle {
+  transform-origin: 352px 70px;
+  animation: lost-needle 6s cubic-bezier(0.3, 1.4, 0.5, 1) infinite;
 }
 .lost-boat {
-  position: absolute;
-  bottom: 22px;
-  left: 0;
-  width: 84px;
-  color: var(--strong);
-  animation: lost-drift 22s linear infinite;
+  transform-box: fill-box;
+  transform-origin: 50% 90%;
+  animation: lost-bob 3.2s ease-in-out infinite;
 }
-.lost-waves {
-  position: absolute;
-  bottom: 12px;
-  left: 0;
-  width: 200%;
-  height: 24px;
-  fill: none;
-  stroke: var(--muted);
-  stroke-width: 1.5;
-  animation: lost-swell 6s linear infinite;
+.lost-arrow {
+  color: var(--text);
 }
+.lost-chart .lost-note {
+  fill: var(--text);
+  font: 500 17px var(--hand);
+}
+
+/* The shore hotspot links home; the hero's white dot, in accent */
+.lost-home-spot {
+  top: 58.4%;
+  left: 13.75%;
+}
+.lost .lost-home-spot::before {
+  background: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.lost .lost-home-spot::after {
+  border-color: var(--accent);
+}
+.lost .lost-home-spot .hotspot-card {
+  left: -10px;
+  translate: 0 4px;
+}
+.lost .lost-home-spot:is(:hover, :focus-visible) .hotspot-card {
+  opacity: 1;
+  translate: 0 0;
+}
+
 .lost-code {
   color: var(--muted);
   font: 11px var(--mono);
@@ -41,26 +118,87 @@
   color: var(--strong);
   font-size: 22px;
   font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
 }
-.lost-home {
-  align-self: flex-start;
+.lost code {
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--card);
+  color: var(--strong);
+  font: 12.5px var(--mono);
+  overflow-wrap: anywhere;
+}
+.lost-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 22px;
+}
+.lost-actions .chip {
   padding: 4px 10px;
   font-size: 13px;
 }
-@keyframes lost-drift {
-  from {
-    transform: translateX(-100px) rotate(-4deg);
-  }
-  50% {
-    transform: translateX(180px) rotate(4deg);
-  }
-  to {
-    transform: translateX(480px) rotate(-4deg);
+.lost-shortcut {
+  color: var(--muted);
+  font: 10px var(--mono);
+}
+@media (hover: none) {
+  .lost-shortcut {
+    display: none;
   }
 }
-@keyframes lost-swell {
+
+@keyframes lost-sweep {
+  0%,
+  100% {
+    scale: 1 1;
+    opacity: 1;
+  }
+  50% {
+    scale: -0.15 1;
+    opacity: 0.2;
+  }
+}
+@keyframes lost-course {
   to {
-    transform: translateX(-50%);
+    stroke-dashoffset: -12;
+  }
+}
+@keyframes lost-wave {
+  0%,
+  100% {
+    translate: 0 0;
+    opacity: 0.25;
+  }
+  50% {
+    translate: 4px 0;
+    opacity: 0.8;
+  }
+}
+@keyframes lost-needle {
+  0%,
+  100% {
+    rotate: 20deg;
+  }
+  25% {
+    rotate: -140deg;
+  }
+  45% {
+    rotate: 70deg;
+  }
+  70% {
+    rotate: -30deg;
+  }
+}
+@keyframes lost-bob {
+  0%,
+  100% {
+    rotate: -5deg;
+    translate: 0 0;
+  }
+  50% {
+    rotate: 5deg;
+    translate: 0 -6px;
   }
 }
