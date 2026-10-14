@@ -750,7 +750,6 @@
     inset 0 1px 0 #ffffff1f,
     0 22px 40px -20px #000000b3;
   color: var(--card-ink);
-  transition: translate 0.3s ease;
 }
 .device svg {
   display: block;
@@ -760,9 +759,6 @@
   background-color: var(--card-paper);
   background-image: radial-gradient(circle, #ffffff14 0.6px, transparent 0.8px);
   background-size: 7px 7px;
-}
-.project:hover .device {
-  translate: 0 -4px;
 }
 .device text {
   fill: currentColor;
@@ -964,9 +960,7 @@
   background: #111;
   box-shadow: 0 24px 40px -18px #00000099;
   rotate: -7deg;
-  transition:
-    rotate 0.4s cubic-bezier(0.3, 1.4, 0.5, 1),
-    translate 0.4s ease;
+  transition: rotate 0.4s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 .phone-shot img {
   display: block;
@@ -976,7 +970,6 @@
 }
 .project:hover .phone-shot {
   rotate: 0deg;
-  translate: 0 -6px;
 }
 
 /* Writing */
