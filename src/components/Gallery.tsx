@@ -18,6 +18,7 @@ type Project = {
   href?: string;
   to?: string;
   linkLabel: string;
+  packages?: string[];
 };
 
 const projects: Project[] = [
@@ -45,6 +46,7 @@ const projects: Project[] = [
     colors: ['#e0445a', '#f6a6b2', '#b9a4f5'],
     href: 'https://github.com/tcmarkfeld/HL7Kit',
     linkLabel: 'GitHub',
+    packages: ['HL7Kit', 'HL7Kit.Fhir'],
     stage: (
       <div className="device">
         <ProjectDiagram kind="parser" />
@@ -60,6 +62,7 @@ const projects: Project[] = [
     colors: ['#dd704b', '#f6c177', '#7fc4c0'],
     href: 'https://github.com/tcmarkfeld/Conductor',
     linkLabel: 'GitHub',
+    packages: ['Conductor.Tool'],
     stage: (
       <div className="device">
         <ProjectDiagram kind="conductor" />
@@ -126,6 +129,22 @@ export function Gallery() {
                   )}
                 </dd>
               </div>
+              {project.packages && (
+                <div className="project-about">
+                  <dt>NuGet</dt>
+                  {project.packages.map((name) => (
+                    <dd key={name}>
+                      <a
+                        href={`https://www.nuget.org/packages/${name}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {name} <ArrowUpRight size={12} aria-hidden="true" />
+                      </a>
+                    </dd>
+                  ))}
+                </div>
+              )}
             </dl>
           </div>
         </article>
