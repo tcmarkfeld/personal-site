@@ -167,12 +167,24 @@
 /* Hero: the coast, feathered into the page */
 .hero {
   padding: 104px 0 56px;
+  perspective: 1400px;
 }
 .scene-frame {
+  --px: 0;
+  --py: 0;
   position: relative;
   width: min(580px, calc(100% - 40px));
   aspect-ratio: 3 / 2;
   margin-inline: auto;
+  transform: rotateX(calc(var(--py) * -2.5deg))
+    rotateY(calc(var(--px) * 3.5deg));
+}
+/* The painting and everything pinned to it drift opposite the tilt. */
+.coastal-painting,
+.coastal-motion,
+.coastal-hotspots {
+  transform: translate(calc(var(--px) * -10px), calc(var(--py) * -7px))
+    scale(1.04);
 }
 .coastal-scene {
   position: absolute;
@@ -300,6 +312,32 @@
 /* Bio */
 .bio p + p {
   margin-top: 18px;
+}
+/* A highlighter stroke that sweeps across the role once the bio is in view. */
+.role-mark {
+  margin: 0 -3px;
+  padding: 0 3px;
+  border-radius: 3px;
+  background: linear-gradient(
+      transparent 55%,
+      color-mix(in srgb, var(--accent) 30%, transparent) 55%,
+      color-mix(in srgb, var(--accent) 30%, transparent) 92%,
+      transparent 92%
+    )
+    no-repeat 0 0 / 0% 100%;
+  color: var(--strong);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background-size 0.9s cubic-bezier(0.65, 0, 0.25, 1) 0.15s;
+}
+.bio[data-lit='true'] .role-mark {
+  background-size: 100% 100%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .role-mark {
+    background-size: 100% 100%;
+    transition: none;
+  }
 }
 .token {
   --delay: calc(var(--order, 0) * 140ms);
@@ -487,115 +525,6 @@
   font: 11px var(--mono);
   padding: 3px 8px;
 }
-.role-chip {
-  position: relative;
-  display: inline-block;
-  /* Holds room for the toolbar, even when the line wraps beneath it. */
-  margin-bottom: 40px;
-}
-.role-box {
-  position: relative;
-  display: inline-block;
-  padding: 0 6px;
-  border: 1px solid #2f6bff;
-  color: var(--strong);
-  transition: color 0.2s ease;
-}
-.role-box[data-code='true'] {
-  font: 500 13.5px var(--mono);
-}
-.role-box::before,
-.role-box::after,
-.role-box i::before,
-.role-box i::after {
-  content: '';
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  border: 1px solid #2f6bff;
-  background: var(--bg);
-}
-.role-box::before {
-  top: -3px;
-  left: -3px;
-}
-.role-box::after {
-  right: -3px;
-  bottom: -3px;
-}
-.role-box i::before {
-  top: -3px;
-  right: -3px;
-}
-.role-box i::after {
-  bottom: -3px;
-  left: -3px;
-}
-.role-toolbar {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid var(--line);
-  border-radius: 9px;
-  background: var(--raised);
-  box-shadow: var(--shadow);
-  translate: -50% 0;
-  white-space: nowrap;
-}
-.role-toolbar button {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 22px;
-  padding: 0 7px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text);
-  font: 11px var(--mono);
-}
-.role-toolbar button:hover {
-  background: var(--card);
-  color: var(--strong);
-}
-.role-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 10;
-  display: grid;
-  min-width: 140px;
-  padding: 4px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--raised);
-  box-shadow: var(--shadow);
-  animation: role-menu-in 0.15s ease-out;
-}
-.role-toolbar .role-menu button {
-  justify-content: space-between;
-  height: 26px;
-}
-.role-menu [aria-selected='true'] {
-  color: var(--strong);
-}
-@keyframes role-menu-in {
-  from {
-    opacity: 0;
-    translate: 0 -4px;
-  }
-}
-.role-swatch {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1px #0000001f;
-}
-
 /* Experience */
 #experience {
   padding-top: var(--section-gap);
@@ -729,12 +658,22 @@
   margin: 0;
 }
 .project-stage {
+  position: relative;
   display: grid;
   place-items: center;
   aspect-ratio: 4 / 3;
   overflow: hidden;
   border-radius: 18px;
   background: var(--card);
+}
+.shader-backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.project-stage > :not(.shader-backdrop) {
+  position: relative;
 }
 .project-panel figcaption {
   margin-top: 10px;

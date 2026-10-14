@@ -20,6 +20,59 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
   const hotspotsRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef(0);
 
+  // The frame leans toward the pointer while the painting inside drifts the
+  // other way, so it reads as a window with depth behind it.
+  useEffect(() => {
+    const frame = sceneRef.current?.parentElement;
+    if (!frame) return;
+    const still = matchMedia('(prefers-reduced-motion: reduce), (hover: none)');
+    let x = 0;
+    let y = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let raf = 0;
+
+    function step() {
+      x += (targetX - x) * 0.08;
+      y += (targetY - y) * 0.08;
+      const settled =
+        Math.abs(targetX - x) < 0.001 && Math.abs(targetY - y) < 0.001;
+      if (settled) {
+        x = targetX;
+        y = targetY;
+      }
+      frame!.style.setProperty('--px', x.toFixed(4));
+      frame!.style.setProperty('--py', y.toFixed(4));
+      raf = settled ? 0 : requestAnimationFrame(step);
+    }
+    function aim(nextX: number, nextY: number) {
+      targetX = nextX;
+      targetY = nextY;
+      if (!raf) raf = requestAnimationFrame(step);
+    }
+    const clamp = (n: number) => Math.max(-1, Math.min(1, n));
+    function onMove(event: PointerEvent) {
+      if (still.matches || event.pointerType === 'touch') return;
+      const box = frame!.getBoundingClientRect();
+      if (box.bottom < 0 || box.top > innerHeight) return;
+      aim(
+        clamp((event.clientX - (box.left + box.width / 2)) / (innerWidth / 2)),
+        clamp((event.clientY - (box.top + box.height / 2)) / (innerHeight / 2)),
+      );
+    }
+    const rest = () => aim(0, 0);
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    document.documentElement.addEventListener('pointerleave', rest);
+    still.addEventListener('change', rest);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('pointermove', onMove);
+      document.documentElement.removeEventListener('pointerleave', rest);
+      still.removeEventListener('change', rest);
+    };
+  }, []);
+
   useEffect(() => {
     const scene = sceneRef.current;
     const canvas = canvasRef.current;

@@ -3,6 +3,8 @@ import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { PhoneShot } from '@/components/PhoneShot';
 import { ProjectDiagram } from '@/components/ProjectDiagram';
+import { ShaderBackdrop } from '@/components/ShaderBackdrop';
+import { useDarkTheme } from '@/lib/theme';
 import { ROUTES } from '@/Navigation/routeEnum';
 
 type Project = {
@@ -11,6 +13,7 @@ type Project = {
   caption: string;
   year: string;
   stack: string;
+  colors: readonly [string, string, string];
   stage: ReactNode;
   href?: string;
   to?: string;
@@ -24,6 +27,7 @@ const projects: Project[] = [
     caption: 'A PDF opened, edited in place, and saved back out.',
     year: '2026',
     stack: 'Rust, egui, PDFium',
+    colors: ['#2f6bff', '#9cc8ff', '#f4d9c6'],
     href: 'https://revise.timmarkfeld.com/',
     linkLabel: 'revise.timmarkfeld.com',
     stage: (
@@ -38,6 +42,7 @@ const projects: Project[] = [
     caption: 'An HL7 message mapped to a FHIR resource.',
     year: '2026',
     stack: 'C#, .NET',
+    colors: ['#e0445a', '#f6a6b2', '#b9a4f5'],
     href: 'https://github.com/tcmarkfeld/HL7Kit',
     linkLabel: 'GitHub',
     stage: (
@@ -52,6 +57,7 @@ const projects: Project[] = [
     caption: 'An app’s SQS queues and SNS topics, and the IAM it needs.',
     year: '2026',
     stack: 'C#, Terraform',
+    colors: ['#dd704b', '#f6c177', '#7fc4c0'],
     href: 'https://github.com/tcmarkfeld/Conductor',
     linkLabel: 'GitHub',
     stage: (
@@ -67,6 +73,7 @@ const projects: Project[] = [
     caption: 'The driver’s route for the day.',
     year: '2020 — 2023',
     stack: 'React Native, Node, MySQL',
+    colors: ['#1f9d9b', '#9ee0dc', '#f3d9a4'],
     to: ROUTES.COROLLA,
     linkLabel: 'Read the post',
     stage: <PhoneShot />,
@@ -74,12 +81,16 @@ const projects: Project[] = [
 ];
 
 export function Gallery() {
+  const dark = useDarkTheme();
   return (
     <div className="projects">
       {projects.map((project) => (
         <article className="project" key={project.title} data-reveal>
           <figure className="project-panel">
-            <div className="project-stage">{project.stage}</div>
+            <div className="project-stage">
+              <ShaderBackdrop colors={project.colors} dim={dark} />
+              {project.stage}
+            </div>
             <figcaption>{project.caption}</figcaption>
           </figure>
           <div className="project-info">

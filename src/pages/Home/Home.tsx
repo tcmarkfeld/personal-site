@@ -1,11 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  ChevronDown,
-  Plus,
-} from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Plus } from 'lucide-react';
 import {
   useEffect,
   useRef,
@@ -84,23 +78,6 @@ const stPeteTime = new Intl.DateTimeFormat('en-US', {
   hour: 'numeric',
   minute: '2-digit',
 });
-
-const casings = [
-  { label: 'Plain', format: (words: string[]) => words.join(' ') },
-  {
-    label: 'camelCase',
-    format: (words: string[]) =>
-      words.map((word, i) => (i ? capitalize(word) : word)).join(''),
-  },
-  {
-    label: 'PascalCase',
-    format: (words: string[]) => words.map(capitalize).join(''),
-  },
-  { label: 'snake_case', format: (words: string[]) => words.join('_') },
-  { label: 'kebab-case', format: (words: string[]) => words.join('-') },
-];
-
-const inks = ['var(--strong)', '#2f6bff', '#dd704b', '#1f9d6b'];
 
 // A soft spring: a slight overshoot, then settles.
 const SPRING =
@@ -195,93 +172,6 @@ function toggleJob(event: MouseEvent<HTMLElement>) {
   ]);
 }
 
-function capitalize(word: string) {
-  return word[0].toUpperCase() + word.slice(1);
-}
-
-// An inline "selected text" chip with a tiny toolbar that re-cases the role.
-function RoleChip() {
-  const [casing, setCasing] = useState(0);
-  const [ink, setInk] = useState(0);
-  const [open, setOpen] = useState(false);
-  const toolbarRef = useRef<HTMLSpanElement>(null);
-  const { label, format } = casings[casing];
-
-  useEffect(() => {
-    if (!open) return;
-    const close = (event: Event) => {
-      if (event instanceof KeyboardEvent && event.key !== 'Escape') return;
-      if (
-        event instanceof PointerEvent &&
-        toolbarRef.current?.contains(event.target as Node)
-      )
-        return;
-      setOpen(false);
-    };
-    document.addEventListener('pointerdown', close);
-    document.addEventListener('keydown', close);
-    return () => {
-      document.removeEventListener('pointerdown', close);
-      document.removeEventListener('keydown', close);
-    };
-  }, [open]);
-
-  return (
-    <span className="role-chip">
-      <span
-        className="role-box"
-        data-code={casing > 0}
-        style={{ color: inks[ink] }}
-      >
-        {format(['senior', 'software', 'engineer'])}
-        <i aria-hidden="true" />
-      </span>
-      <span
-        className="role-toolbar"
-        role="toolbar"
-        aria-label="Role styling"
-        ref={toolbarRef}
-      >
-        <button
-          type="button"
-          onClick={() => setOpen(!open)}
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          aria-label={`Casing: ${label}`}
-        >
-          {label} <ChevronDown size={10} aria-hidden="true" />
-        </button>
-        {open && (
-          <span className="role-menu" role="listbox" aria-label="Casing">
-            {casings.map((option, index) => (
-              <button
-                key={option.label}
-                type="button"
-                role="option"
-                aria-selected={index === casing}
-                onClick={() => {
-                  setCasing(index);
-                  setOpen(false);
-                }}
-              >
-                {option.label}
-                {index === casing && <Check size={11} aria-hidden="true" />}
-              </button>
-            ))}
-          </span>
-        )}
-        <button
-          type="button"
-          onClick={() => setInk((ink + 1) % inks.length)}
-          aria-label="Change color"
-        >
-          <span className="role-swatch" style={{ background: inks[ink] }} />
-        </button>
-      </span>
-    </span>
-  );
-}
-
 function Token({
   children,
   Icon,
@@ -372,7 +262,8 @@ export const Home = () => {
           </h1>
           <p>Hey,</p>
           <p>
-            I’m <strong>Tim</strong>, a <RoleChip /> based in{' '}
+            I’m <strong>Tim</strong>, a{' '}
+            <mark className="role-mark">senior software engineer</mark> based in{' '}
             <Token Icon={PalmIcon} order={0} tone="#1f9d6b">
               St. Pete
             </Token>
