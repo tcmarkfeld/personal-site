@@ -165,14 +165,24 @@
   background: linear-gradient(var(--bg) 20%, transparent);
   pointer-events: none;
 }
-/* A matching strip on the bottom edge, so mobile Safari tints its bottom
-   controls with the page colour instead of guessing. */
+/* Solid strips on the top and bottom edges, so mobile Safari tints its status
+   bar and controls with the page colour. Safari reads their background colour,
+   not a gradient, so these must be solid. */
+.edge-fade::before,
 .edge-fade::after {
   content: '';
   position: fixed;
-  inset: auto 0 0;
+  left: 0;
+  right: 0;
+  background-color: var(--bg);
+}
+.edge-fade::before {
+  top: 0;
+  height: max(12px, env(safe-area-inset-top));
+}
+.edge-fade::after {
+  bottom: 0;
   height: max(12px, env(safe-area-inset-bottom));
-  background: linear-gradient(transparent, var(--bg) 60%);
 }
 
 /* Hero: the coast, feathered into the page */
