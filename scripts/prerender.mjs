@@ -30,9 +30,21 @@ try {
     })),
   ];
 
+  // Unknown paths get a real 404: Netlify serves 404.html with a 404 status
+  // when no file matches, and every real page is its own file above.
+  const notFound = fs
+    .readFileSync(path.join(dist, 'index.html'), 'utf8')
+    .replace(
+      /<title>[^<]*<\/title>/,
+      '<title>Page not found | Timothy Markfeld</title>',
+    )
+    .replace('content="index,follow"', 'content="noindex"')
+    .replace(/\s*<link rel="canonical"[^>]*>/, '');
+  pages.push({ url: '/404', file: '404.html', html: notFound });
+
   for (const page of pages) {
     const file = path.join(dist, page.file);
-    const html = fs.readFileSync(file, 'utf8');
+    const html = page.html ?? fs.readFileSync(file, 'utf8');
     const app = await render(page.url);
     if (!html.includes('<div id="root"></div>'))
       throw new Error(`${page.file} has no empty #root`);

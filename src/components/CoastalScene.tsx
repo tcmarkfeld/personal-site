@@ -483,7 +483,7 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
               ? '/coastal-observatory-night.webp'
               : '/coastal-observatory.webp'
           }
-          alt=""
+          alt="Painting of a house on a rocky point over the water, framed by palm trees"
           fetchPriority="high"
         />
         <img

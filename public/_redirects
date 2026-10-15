@@ -3,4 +3,3 @@ http://revise.timmarkfeld.com/* /revise/:splat 200!
 https://revise.timmarkfeld.com/* /revise/:splat 200!
 # The Corolla post moved into the blog.
 /work/corolla /blog/corolla-ice-delivery 301
-/* /index.html 200
