@@ -1,8 +1,6 @@
 /* Page shell */
 .site {
   min-height: 100vh;
-  /* viewport-fit=cover lets the page run under the notch in landscape. */
-  padding-inline: env(safe-area-inset-left) env(safe-area-inset-right);
   overflow-x: clip;
   background: var(--bg);
   color: var(--text);
@@ -79,7 +77,7 @@
 /* Floating pill nav */
 .pill-nav {
   position: fixed;
-  top: calc(16px + env(safe-area-inset-top));
+  top: 16px;
   left: 50%;
   z-index: 50;
   display: flex;
@@ -161,28 +159,9 @@
   position: fixed;
   inset: 0 0 auto;
   z-index: 40;
-  height: calc(76px + env(safe-area-inset-top));
+  height: 76px;
   background: linear-gradient(var(--bg) 20%, transparent);
   pointer-events: none;
-}
-/* Solid strips on the top and bottom edges, so mobile Safari tints its status
-   bar and controls with the page colour. Safari reads their background colour,
-   not a gradient, so these must be solid. */
-.edge-fade::before,
-.edge-fade::after {
-  content: '';
-  position: fixed;
-  left: 0;
-  right: 0;
-  background-color: var(--bg);
-}
-.edge-fade::before {
-  top: 0;
-  height: max(12px, env(safe-area-inset-top));
-}
-.edge-fade::after {
-  bottom: 0;
-  height: max(12px, env(safe-area-inset-bottom));
 }
 
 /* Hero: the coast, feathered into the page */
@@ -908,7 +887,7 @@
 
 /* Footer */
 .site-footer {
-  padding: 72px 0 calc(32px + env(safe-area-inset-bottom));
+  padding: 72px 0 32px;
 }
 .footer-links {
   display: flex;
