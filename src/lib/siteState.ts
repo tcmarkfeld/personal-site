@@ -31,7 +31,11 @@ export function getSiteState() {
 }
 
 export function useSiteState() {
-  return useSyncExternalStore(subscribe, () => state);
+  return useSyncExternalStore(
+    subscribe,
+    () => state,
+    () => state,
+  );
 }
 
 export const menuShortcut = /Mac|iPhone|iPad/.test(navigator.userAgent)

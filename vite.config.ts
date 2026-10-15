@@ -85,6 +85,29 @@ function sharePages(): Plugin {
         fs.mkdirSync(path.dirname(out), { recursive: true });
         fs.writeFileSync(out, html);
       }
+
+      // The sitemap lists the same canonical, trailing-slash URLs as the pages.
+      const latest = postMeta
+        .map((post) => post.date)
+        .sort()
+        .at(-1);
+      const urls = [
+        { loc: `${site}/`, lastmod: latest },
+        { loc: `${site}/blog/`, lastmod: latest },
+        ...postMeta.map((post) => ({
+          loc: `${site}/blog/${post.slug}/`,
+          lastmod: post.date,
+        })),
+      ];
+      fs.writeFileSync(
+        path.join(dir, 'sitemap.xml'),
+        `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+          .map(
+            ({ loc, lastmod }) =>
+              `  <url><loc>${loc}</loc><lastmod>${lastmod}</lastmod></url>`,
+          )
+          .join('\n')}\n</urlset>\n`,
+      );
     },
   };
 }

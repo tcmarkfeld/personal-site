@@ -27,6 +27,7 @@ type Project = {
   title: string;
   about: string;
   caption: string;
+  alt: string;
   year: string;
   stack: string;
   colors: readonly [string, string, string];
@@ -42,6 +43,7 @@ const projects: Project[] = [
     title: 'Revise',
     about: 'A native macOS app that edits PDFs like a doc, no conversions.',
     caption: 'A PDF opened, edited in place, and saved back out.',
+    alt: 'Illustration of a typewriter carriage typing a word into a printed page while the rest of the line re-wraps.',
     year: '2026',
     stack: 'Rust, egui, PDFium',
     colors: ['#2f6bff', '#9cc8ff', '#f4d9c6'],
@@ -53,6 +55,7 @@ const projects: Project[] = [
     title: 'HL7Kit',
     about: 'Strongly typed HL7 parsing and FHIR conversion for .NET.',
     caption: 'An HL7 message mapped to a FHIR resource.',
+    alt: 'Illustration of a tape slitter cutting an HL7 message at each field delimiter and sorting the fields into bins.',
     year: '2026',
     stack: 'C#, .NET',
     colors: ['#e0445a', '#f6a6b2', '#b9a4f5'],
@@ -65,6 +68,7 @@ const projects: Project[] = [
     title: 'Conductor',
     about: 'Least-privilege IAM and Terraform from messaging config.',
     caption: 'An app’s SQS queues and SNS topics, and the IAM it needs.',
+    alt: 'Illustration of a key-duplicating machine copying the cuts of a template key onto a blank.',
     year: '2026',
     stack: 'C#, Terraform',
     colors: ['#d9a21b', '#f7dc7a', '#f5efd9'],
@@ -78,6 +82,7 @@ const projects: Project[] = [
     about:
       'The delivery app I shipped to both stores, and how its routing works.',
     caption: 'The driver’s route for the day.',
+    alt: 'Screenshot of the Corolla Ice Delivery driver app showing the route for the day.',
     year: '2020 — 2023',
     stack: 'React Native, Node, MySQL',
     colors: ['#1f9d9b', '#9ee0dc', '#f3d9a4'],
@@ -94,7 +99,7 @@ export function Gallery() {
       {projects.map((project) => (
         <article className="project" key={project.title} data-reveal>
           <figure className="project-panel">
-            <div className="project-stage">
+            <div className="project-stage" role="img" aria-label={project.alt}>
               <ShaderBackdrop colors={project.colors} dim={dark} />
               <Suspense>{project.stage}</Suspense>
             </div>

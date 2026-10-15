@@ -33,6 +33,10 @@
         const themeColor = theme === 'dark' ? '#0e0e0e' : '#fbfbfb';
 
         document.documentElement.dataset.theme = theme;
+        // Sections fade in on scroll only in a real browser session; without
+        // JavaScript, or in an automated browser that never scrolls, they
+        // simply show.
+        if (!navigator.webdriver) document.documentElement.dataset.animate = '';
         document.documentElement.style.colorScheme = theme;
         document
           .querySelector('meta[name="theme-color"]')
@@ -85,25 +89,92 @@
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
-        "@type": "Person",
-        "name": "Timothy Markfeld",
-        "url": "https://timmarkfeld.com/",
-        "image": "https://timmarkfeld.com/social-preview.png",
-        "jobTitle": "Senior Software Engineer",
-        "email": "mailto:mail@timmarkfeld.com",
-        "sameAs": [
-          "https://github.com/tcmarkfeld",
-          "https://linkedin.com/in/timothy-markfeld"
-        ],
-        "knowsAbout": [
-          ".NET",
-          "C#",
-          "Microservices",
-          "GraphQL",
-          "Kafka",
-          "AWS",
-          "Healthcare Data Integration",
-          "AI Automation"
+        "@graph": [
+          {
+            "@type": "Person",
+            "@id": "https://timmarkfeld.com/#person",
+            "name": "Timothy Markfeld",
+            "url": "https://timmarkfeld.com/",
+            "image": "https://timmarkfeld.com/social-preview.png",
+            "jobTitle": "Senior Software Engineer",
+            "email": "mailto:mail@timmarkfeld.com",
+            "homeLocation": {
+              "@type": "Place",
+              "name": "St. Petersburg, Florida"
+            },
+            "worksFor": {
+              "@type": "Organization",
+              "name": "FirmPilot",
+              "url": "https://firmpilot.com/"
+            },
+            "alumniOf": {
+              "@type": "CollegeOrUniversity",
+              "name": "University of Alabama"
+            },
+            "sameAs": [
+              "https://github.com/tcmarkfeld",
+              "https://linkedin.com/in/timothy-markfeld"
+            ],
+            "knowsAbout": [
+              ".NET",
+              "C#",
+              "Microservices",
+              "GraphQL",
+              "Kafka",
+              "AWS",
+              "Healthcare Data Integration",
+              "AI Automation"
+            ]
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Revise",
+            "url": "https://revise.timmarkfeld.com/",
+            "description": "A native macOS app that edits PDFs like a doc, no conversions.",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "macOS",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": { "@id": "https://timmarkfeld.com/#person" },
+            "sameAs": ["https://github.com/tcmarkfeld/revise-pdf"]
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "HL7Kit",
+            "url": "https://github.com/tcmarkfeld/HL7Kit",
+            "description": "Strongly typed HL7 parsing and FHIR conversion for .NET.",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Cross-platform (.NET)",
+            "license": "https://opensource.org/licenses/MIT",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": { "@id": "https://timmarkfeld.com/#person" },
+            "sameAs": [
+              "https://www.nuget.org/packages/HL7Kit",
+              "https://www.nuget.org/packages/HL7Kit.Fhir"
+            ]
+          },
+          {
+            "@type": "SoftwareApplication",
+            "name": "Conductor",
+            "url": "https://github.com/tcmarkfeld/Conductor",
+            "description": "Least-privilege IAM and Terraform from messaging config.",
+            "applicationCategory": "DeveloperApplication",
+            "operatingSystem": "Cross-platform (.NET)",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": { "@id": "https://timmarkfeld.com/#person" },
+            "sameAs": ["https://www.nuget.org/packages/Conductor.Tool"]
+          }
         ]
       }
     </script>

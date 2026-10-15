@@ -1,19 +1,26 @@
 import { useSyncExternalStore } from 'react';
 
-const root = document.documentElement;
-
 function subscribe(onChange: () => void) {
   const observer = new MutationObserver(onChange);
-  observer.observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
   return () => observer.disconnect();
 }
 
 export function useDarkTheme() {
-  return useSyncExternalStore(subscribe, () => root.dataset.theme === 'dark');
+  return useSyncExternalStore(
+    subscribe,
+    () => document.documentElement.dataset.theme === 'dark',
+    // Build-time rendering has no document; the page script picks the theme.
+    () => false,
+  );
 }
 
 export function setDarkTheme(dark: boolean) {
   const theme = dark ? 'dark' : 'light';
+  const root = document.documentElement;
   root.dataset.theme = theme;
   root.style.colorScheme = theme;
   try {
