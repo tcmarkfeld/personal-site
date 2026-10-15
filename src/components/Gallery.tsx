@@ -1,11 +1,27 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
-import type { ReactNode } from 'react';
+import { lazy, Suspense, type ReactNode } from 'react';
 import { PhoneShot } from '@/components/PhoneShot';
-import { ProjectDiagram } from '@/components/ProjectDiagram';
 import { ShaderBackdrop } from '@/components/ShaderBackdrop';
 import { useDarkTheme } from '@/lib/theme';
 import { ROUTES } from '@/Navigation/routeEnum';
+
+// The figures carry large generated drawings, so they load after the page.
+const ReviseFigure = lazy(() =>
+  import('@/components/projectFigures/ReviseFigure').then((m) => ({
+    default: m.ReviseFigure,
+  })),
+);
+const Hl7KitFigure = lazy(() =>
+  import('@/components/projectFigures/Hl7KitFigure').then((m) => ({
+    default: m.Hl7KitFigure,
+  })),
+);
+const ConductorFigure = lazy(() =>
+  import('@/components/projectFigures/ConductorFigure').then((m) => ({
+    default: m.ConductorFigure,
+  })),
+);
 
 type Project = {
   title: string;
@@ -31,11 +47,7 @@ const projects: Project[] = [
     colors: ['#2f6bff', '#9cc8ff', '#f4d9c6'],
     href: 'https://revise.timmarkfeld.com/',
     linkLabel: 'revise.timmarkfeld.com',
-    stage: (
-      <div className="device">
-        <ProjectDiagram kind="revise" />
-      </div>
-    ),
+    stage: <ReviseFigure />,
   },
   {
     title: 'HL7Kit',
@@ -47,11 +59,7 @@ const projects: Project[] = [
     href: 'https://github.com/tcmarkfeld/HL7Kit',
     linkLabel: 'GitHub',
     packages: ['HL7Kit', 'HL7Kit.Fhir'],
-    stage: (
-      <div className="device">
-        <ProjectDiagram kind="parser" />
-      </div>
-    ),
+    stage: <Hl7KitFigure />,
   },
   {
     title: 'Conductor',
@@ -59,15 +67,11 @@ const projects: Project[] = [
     caption: 'An app’s SQS queues and SNS topics, and the IAM it needs.',
     year: '2026',
     stack: 'C#, Terraform',
-    colors: ['#dd704b', '#f6c177', '#7fc4c0'],
+    colors: ['#d9a21b', '#f7dc7a', '#f5efd9'],
     href: 'https://github.com/tcmarkfeld/Conductor',
     linkLabel: 'GitHub',
     packages: ['Conductor.Tool'],
-    stage: (
-      <div className="device">
-        <ProjectDiagram kind="conductor" />
-      </div>
-    ),
+    stage: <ConductorFigure />,
   },
   {
     title: 'Corolla Ice Delivery',
@@ -92,7 +96,7 @@ export function Gallery() {
           <figure className="project-panel">
             <div className="project-stage">
               <ShaderBackdrop colors={project.colors} dim={dark} />
-              {project.stage}
+              <Suspense>{project.stage}</Suspense>
             </div>
             <figcaption>{project.caption}</figcaption>
           </figure>
