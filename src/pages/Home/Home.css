@@ -163,6 +163,17 @@
   background: linear-gradient(var(--bg) 20%, transparent);
   pointer-events: none;
 }
+/* Mobile Safari tints its top bar from the background colour of the fixed
+   element at the top edge, and a gradient's is transparent (read as white).
+   This strip sits inside the fade's solid band, so it only gives Safari the
+   page colour. */
+.edge-fade::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 12px;
+  background-color: var(--bg);
+}
 
 /* Hero: the coast, feathered into the page */
 .hero {
