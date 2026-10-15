@@ -31,4 +31,14 @@ export function setDarkTheme(dark: boolean) {
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', dark ? '#0e0e0e' : '#fbfbfb');
+  // Mobile Safari picks its top bar color from the fixed edge strip when it
+  // first appears and keeps it after the color changes. Dropping the strip for
+  // a frame makes Safari read it again in the new theme.
+  const edges = document.querySelectorAll<HTMLElement>('.edge-fade');
+  edges.forEach((edge) => (edge.style.display = 'none'));
+  requestAnimationFrame(() =>
+    requestAnimationFrame(() =>
+      edges.forEach((edge) => (edge.style.display = '')),
+    ),
+  );
 }
