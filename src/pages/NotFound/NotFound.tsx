@@ -27,6 +27,7 @@ export function NotFound() {
         Skip to content
       </a>
       <SiteHeader />
+      <div className="edge-fade" aria-hidden="true" />
       <main className="column" id="main">
         <figure className="lost-chart">
           {/* A nautical chart: the shore you left, and the page that drifted off. */}
