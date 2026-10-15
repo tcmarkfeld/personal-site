@@ -26,7 +26,7 @@ type Command = {
   run: () => void | Promise<unknown>;
 };
 
-const email = 'timmarkfeld@gmail.com';
+const email = 'mail@timmarkfeld.com';
 
 export function CommandMenu() {
   const navigate = useNavigate();

@@ -10,7 +10,7 @@ const clock = new Intl.DateTimeFormat('en-US', {
 });
 
 const links = [
-  { label: 'Email', href: 'mailto:timmarkfeld@gmail.com', Icon: Mail },
+  { label: 'Email', href: 'mailto:mail@timmarkfeld.com', Icon: Mail },
   { label: 'GitHub', href: 'https://github.com/tcmarkfeld', Icon: Github },
   {
     label: 'LinkedIn',
