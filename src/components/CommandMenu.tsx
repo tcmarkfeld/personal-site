@@ -188,6 +188,17 @@ export function CommandMenu() {
         ref={dialogRef}
         aria-label="Command menu"
         onClose={() => setSiteState({ menu: false })}
+        onAnimationEnd={(event) => {
+          // iOS Safari doesn't register the list as scrollable while the
+          // dialog is mid-transform, and only notices after a layout change
+          // (like the keyboard opening). Rebuild its scroll area once the
+          // opening animation finishes.
+          const list = event.currentTarget.querySelector('ul');
+          if (!list) return;
+          list.style.overflowY = 'hidden';
+          void list.offsetHeight;
+          list.style.overflowY = '';
+        }}
         onClick={(event) => {
           if (event.target === event.currentTarget)
             setSiteState({ menu: false });
