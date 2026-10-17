@@ -64,6 +64,16 @@ export function CommandMenu() {
       const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
       if (inputRef.current) inputRef.current.inputMode = touch ? 'none' : '';
       dialog.showModal();
+      // iOS Safari doesn't register the list as scrollable while the dialog is
+      // mid-animation (a transform), and only notices after a layout change,
+      // like the keyboard opening. Rebuild its scroll area once it has settled.
+      window.setTimeout(() => {
+        const list = dialog.querySelector('ul');
+        if (!list) return;
+        list.style.overflowY = 'hidden';
+        void list.offsetHeight;
+        list.style.overflowY = '';
+      }, 250);
     }
     if (!menu && dialog.open) dialog.close();
   }, [menu]);
@@ -188,17 +198,6 @@ export function CommandMenu() {
         ref={dialogRef}
         aria-label="Command menu"
         onClose={() => setSiteState({ menu: false })}
-        onAnimationEnd={(event) => {
-          // iOS Safari doesn't register the list as scrollable while the
-          // dialog is mid-transform, and only notices after a layout change
-          // (like the keyboard opening). Rebuild its scroll area once the
-          // opening animation finishes.
-          const list = event.currentTarget.querySelector('ul');
-          if (!list) return;
-          list.style.overflowY = 'hidden';
-          void list.offsetHeight;
-          list.style.overflowY = '';
-        }}
         onClick={(event) => {
           if (event.target === event.currentTarget)
             setSiteState({ menu: false });
