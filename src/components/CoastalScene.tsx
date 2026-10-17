@@ -98,7 +98,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       bend: number;
       phase: number;
       size: number;
-      bristles: { offset: number; size: number; alpha: number; dry: number }[];
+      bristles: { offset: number; size: number; alpha: number; end: number }[];
       drawn: number;
       dabbed: boolean;
     };
@@ -115,10 +115,11 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       bend: between(-0.09, 0.09) * height,
       phase: between(0, Math.PI * 2),
       size,
-      // A solid core, then bristles across the brush's width that thin out,
-      // fade and run dry toward its edges.
+      // A solid core, then bristles across the brush's width that thin out
+      // toward its edges and each run out of paint at their own point, so the
+      // stroke trails off in dry streaks.
       bristles: [
-        { offset: 0, size: 0.5, alpha: 1, dry: 0.82 },
+        { offset: 0, size: 0.5, alpha: 1, end: 0.9 },
         ...Array.from({ length: 16 }, () => {
           const offset = between(-0.5, 0.5);
           const edge = Math.abs(offset) * 2;
@@ -126,7 +127,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
             offset,
             size: between(0.05, 0.17) * (1 - edge * 0.5),
             alpha: between(0.55, 1) * (1 - edge * 0.35),
-            dry: between(0.5, 0.9) - edge * 0.15,
+            end: between(0.72, 1) - edge * 0.12,
           };
         }),
       ],
@@ -137,19 +138,27 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       ...Array.from({ length: rows }, (_, row) => {
         const y = ((row + 0.5) / rows) * height + between(-0.1, 0.1) * brush;
         const tilt = between(-0.06, 0.06) * height;
-        const left: [number, number] = [-brush * 0.6, y - tilt];
-        const right: [number, number] = [width + brush * 0.6, y + tilt];
+        // Each stroke lands well outside the frame, so its narrow start is
+        // mostly out of view, and lifts off just past the far edge.
+        const left = (reach: number): [number, number] => [
+          -brush * reach,
+          y - tilt,
+        ];
+        const right = (reach: number): [number, number] => [
+          width + brush * reach,
+          y + tilt,
+        ];
         return stroke(
           row * 0.075 + between(0, 0.05),
-          row % 2 ? right : left,
-          row % 2 ? left : right,
+          row % 2 ? right(1.3) : left(1.3),
+          row % 2 ? left(0.7) : right(0.7),
           brush * between(0.95, 1.1),
         );
       }),
       ...[0.15, 0.5, 0.85].map((at, n) =>
         stroke(
           0.45 + n * 0.1,
-          [width * (at - 0.35), -brush * 0.5],
+          [width * (at - 0.35), -brush * 1.2],
           [width * (at + 0.25), height + brush * 0.5],
           brush * 1.25,
         ),
@@ -164,11 +173,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
         Math.sin(u * 7 + s.phase) * s.size * 0.05,
     ];
     // The brush presses in, carries, then lifts: narrow at both ends.
-    const pressure = (u: number) => 0.3 + 0.7 * Math.sin(Math.PI * u) ** 0.45;
-    const hash = (a: number, b: number) => {
-      const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
-      return x - Math.floor(x);
-    };
+    const pressure = (u: number) => 0.4 + 0.6 * Math.sin(Math.PI * u) ** 0.45;
     const STEP = 0.012;
 
     function wipe(elapsed: number) {
@@ -177,7 +182,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       ctx!.fillStyle = '#000';
       ctx!.strokeStyle = '#000';
       let done = true;
-      strokes.forEach((s, index) => {
+      strokes.forEach((s) => {
         const raw = Math.min(1, Math.max(0, (elapsed - s.start) / s.length));
         const t = 1 - (1 - raw) ** 3;
         if (raw < 1) done = false;
@@ -189,16 +194,16 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
           const nx = -(y1 - y0) / length;
           const ny = (x1 - x0) / length;
           const press = pressure((u0 + u1) / 2);
-          const step = Math.round(u0 / STEP);
-          s.bristles.forEach((bristle, b) => {
-            // Past its dry point a bristle skips more and more of the canvas.
-            if (u0 > bristle.dry) {
-              const dryness = (u0 - bristle.dry) / (1 - bristle.dry);
-              if (hash(index * 31 + b, step) < dryness * 0.9) return;
-            }
+          s.bristles.forEach((bristle) => {
+            if (u0 > bristle.end) return;
+            // Each bristle thins as it runs out of paint.
+            const left = Math.min(1, (bristle.end - u0) / 0.15);
             const spread = bristle.offset * s.size * press;
             ctx!.globalAlpha = bristle.alpha;
-            ctx!.lineWidth = Math.max(1, s.size * bristle.size * press);
+            ctx!.lineWidth = Math.max(
+              1,
+              s.size * bristle.size * press * (0.35 + 0.65 * left),
+            );
             ctx!.beginPath();
             ctx!.moveTo(x0 + nx * spread, y0 + ny * spread);
             ctx!.lineTo(x1 + nx * spread, y1 + ny * spread);
