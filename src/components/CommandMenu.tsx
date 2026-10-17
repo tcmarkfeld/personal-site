@@ -37,7 +37,8 @@ export function CommandMenu() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
-  const [active, setActive] = useState(0);
+  // Nothing is highlighted until you hover, use the arrow keys, or type.
+  const [active, setActive] = useState(-1);
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export function CommandMenu() {
     if (!dialog) return;
     if (menu && !dialog.open) {
       setQuery('');
-      setActive(0);
+      setActive(-1);
       setNotice('');
       dialog.showModal();
       // Don't pop the keyboard on touch screens; tapping the field still does.
@@ -206,9 +207,7 @@ export function CommandMenu() {
               }
               if (event.key === 'ArrowUp') {
                 event.preventDefault();
-                setActive(
-                  (active - 1 + results.length) % Math.max(results.length, 1),
-                );
+                setActive(active <= 0 ? results.length - 1 : active - 1);
               }
               if (event.key === 'Enter') execute(results[active]);
             }}
@@ -223,7 +222,11 @@ export function CommandMenu() {
           />
           <kbd>esc</kbd>
         </div>
-        <ul id="command-results" role="listbox">
+        <ul
+          id="command-results"
+          role="listbox"
+          onMouseLeave={() => setActive(-1)}
+        >
           {results.map((command, index) => (
             <Fragment key={command.label}>
               {(index === 0 || results[index - 1].group !== command.group) && (
