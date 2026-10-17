@@ -241,11 +241,74 @@
 .coastal-shade {
   display: none;
 }
+/* The paint-in cover: paper until the underpainting is drawn, then wiped away
+   by brush strokes. Only in a real browser session with motion allowed. */
+.coastal-paint {
+  display: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-animate] .coastal-paint {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--bg);
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+}
+.coastal-paint[data-state] {
+  background: none;
+}
+.coastal-paint[data-state='waiting'] {
+  animation: underpaint-breathe 1.6s ease-in-out infinite;
+}
+.coastal-paint[data-state='done'] {
+  opacity: 0;
+}
+/* The hotspots belong to the finished scene, so they wait for it. */
+.coastal-hotspots {
+  transition: opacity 0.4s ease;
+}
+.scene-frame:has(.coastal-paint[data-state='waiting']) .coastal-hotspots,
+.scene-frame:has(.coastal-paint[data-state='painting']) .coastal-hotspots {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  :root[data-animate]
+    .scene-frame:has(.coastal-paint:not([data-state]))
+    .coastal-hotspots {
+    opacity: 0;
+  }
+}
+@keyframes underpaint-breathe {
+  50% {
+    opacity: 0.82;
+  }
+}
 .scene-caption {
   margin-top: 14px;
   color: var(--muted);
   font: 11px var(--mono);
   text-align: center;
+}
+/* Wide enough for "77°F, partly cloudy", so loading in never shifts the line. */
+.weather-readout {
+  display: inline-block;
+  min-width: 19ch;
+  text-align: left;
+  white-space: nowrap;
+  transition: opacity 0.3s ease;
+}
+.weather-readout[data-loading='true'] {
+  opacity: 0.45;
+  animation: weather-pulse 1.4s ease-in-out infinite;
+}
+@keyframes weather-pulse {
+  50% {
+    opacity: 0.75;
+  }
 }
 .coastal-hotspots {
   position: absolute;

@@ -10,15 +10,248 @@ const cloudPaths = [
 type SceneProps = {
   dark: boolean;
   effect: WeatherEffect;
-  weather: Weather | null;
+  weather: Weather | null | undefined;
+  // True while the live weather is still loading.
+  pending: boolean;
 };
 
-export function CoastalScene({ dark, effect, weather }: SceneProps) {
+export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frondRef = useRef<HTMLImageElement>(null);
   const hotspotsRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef(0);
+  const paintRef = useRef<HTMLCanvasElement>(null);
+  const pendingRef = useRef(pending);
+
+  useEffect(() => {
+    pendingRef.current = pending;
+  }, [pending]);
+
+  // The scene paints itself in once per visit: a washed-out underpainting
+  // waits while the weather loads, then brush strokes wipe it away to show
+  // the finished scene with the right weather already in it.
+  useEffect(() => {
+    const paint = paintRef.current;
+    const scene = sceneRef.current;
+    const art = scene?.querySelector<HTMLImageElement>('.coastal-painting');
+    const ctx = paint?.getContext('2d');
+    if (!paint || !scene || !art || !ctx) return;
+    if (getComputedStyle(paint).display === 'none') return;
+    const ratio = Math.min(devicePixelRatio, 1.5);
+    const width = (paint.width = Math.round(scene.clientWidth * ratio));
+    const height = (paint.height = Math.round(scene.clientHeight * ratio));
+    const paper = getComputedStyle(scene).getPropertyValue('--bg').trim();
+    const begun = performance.now();
+    let frame = 0;
+    let underpainted = false;
+    let revealAt = 0;
+
+    function underpaint() {
+      // Drawn tiny and scaled up for a soft blur, then greyed and washed out.
+      const cover = Math.max(
+        width / art!.naturalWidth,
+        height / art!.naturalHeight,
+      );
+      const small = document.createElement('canvas');
+      small.width = Math.max(1, Math.round(width / 14));
+      small.height = Math.max(1, Math.round(height / 14));
+      const tiny = small.getContext('2d')!;
+      tiny.drawImage(
+        art!,
+        (small.width - (art!.naturalWidth * cover) / 14) / 2,
+        (small.height - (art!.naturalHeight * cover) / 14) / 2,
+        (art!.naturalWidth * cover) / 14,
+        (art!.naturalHeight * cover) / 14,
+      );
+      ctx!.imageSmoothingQuality = 'high';
+      ctx!.drawImage(small, 0, 0, width, height);
+      ctx!.globalCompositeOperation = 'saturation';
+      ctx!.fillStyle = '#808080';
+      ctx!.fillRect(0, 0, width, height);
+      ctx!.globalCompositeOperation = 'source-over';
+      ctx!.globalAlpha = 0.4;
+      ctx!.fillStyle = paper;
+      ctx!.fillRect(0, 0, width, height);
+      ctx!.globalAlpha = 1;
+      underpainted = true;
+    }
+
+    // A seeded random, so every visit is painted with the same strokes.
+    let seed = 7;
+    const random = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+    const between = (low: number, high: number) =>
+      low + random() * (high - low);
+
+    // Broad rows blocking in the canvas, then a few long diagonal sweeps that
+    // pick up whatever the rows missed.
+    const rows = 7;
+    const brush = (height / rows) * 1.9;
+    type Stroke = {
+      start: number;
+      length: number;
+      from: [number, number];
+      to: [number, number];
+      bend: number;
+      phase: number;
+      size: number;
+      bristles: { offset: number; size: number; alpha: number; dry: number }[];
+      drawn: number;
+      dabbed: boolean;
+    };
+    const stroke = (
+      start: number,
+      from: [number, number],
+      to: [number, number],
+      size: number,
+    ): Stroke => ({
+      start,
+      length: between(0.5, 0.7),
+      from,
+      to,
+      bend: between(-0.09, 0.09) * height,
+      phase: between(0, Math.PI * 2),
+      size,
+      // A solid core, then bristles across the brush's width that thin out,
+      // fade and run dry toward its edges.
+      bristles: [
+        { offset: 0, size: 0.5, alpha: 1, dry: 0.82 },
+        ...Array.from({ length: 16 }, () => {
+          const offset = between(-0.5, 0.5);
+          const edge = Math.abs(offset) * 2;
+          return {
+            offset,
+            size: between(0.05, 0.17) * (1 - edge * 0.5),
+            alpha: between(0.55, 1) * (1 - edge * 0.35),
+            dry: between(0.5, 0.9) - edge * 0.15,
+          };
+        }),
+      ],
+      drawn: 0,
+      dabbed: false,
+    });
+    const strokes: Stroke[] = [
+      ...Array.from({ length: rows }, (_, row) => {
+        const y = ((row + 0.5) / rows) * height + between(-0.1, 0.1) * brush;
+        const tilt = between(-0.06, 0.06) * height;
+        const left: [number, number] = [-brush * 0.6, y - tilt];
+        const right: [number, number] = [width + brush * 0.6, y + tilt];
+        return stroke(
+          row * 0.075 + between(0, 0.05),
+          row % 2 ? right : left,
+          row % 2 ? left : right,
+          brush * between(0.95, 1.1),
+        );
+      }),
+      ...[0.15, 0.5, 0.85].map((at, n) =>
+        stroke(
+          0.45 + n * 0.1,
+          [width * (at - 0.35), -brush * 0.5],
+          [width * (at + 0.25), height + brush * 0.5],
+          brush * 1.25,
+        ),
+      ),
+    ];
+
+    const pointAt = (s: Stroke, u: number): [number, number] => [
+      s.from[0] + (s.to[0] - s.from[0]) * u,
+      s.from[1] +
+        (s.to[1] - s.from[1]) * u +
+        Math.sin(u * Math.PI) * s.bend +
+        Math.sin(u * 7 + s.phase) * s.size * 0.05,
+    ];
+    // The brush presses in, carries, then lifts: narrow at both ends.
+    const pressure = (u: number) => 0.3 + 0.7 * Math.sin(Math.PI * u) ** 0.45;
+    const hash = (a: number, b: number) => {
+      const x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453;
+      return x - Math.floor(x);
+    };
+    const STEP = 0.012;
+
+    function wipe(elapsed: number) {
+      ctx!.globalCompositeOperation = 'destination-out';
+      ctx!.lineCap = 'round';
+      ctx!.fillStyle = '#000';
+      ctx!.strokeStyle = '#000';
+      let done = true;
+      strokes.forEach((s, index) => {
+        const raw = Math.min(1, Math.max(0, (elapsed - s.start) / s.length));
+        const t = 1 - (1 - raw) ** 3;
+        if (raw < 1) done = false;
+        for (let u0 = s.drawn; u0 < t; u0 += STEP) {
+          const u1 = Math.min(t, u0 + STEP);
+          const [x0, y0] = pointAt(s, u0);
+          const [x1, y1] = pointAt(s, u1);
+          const length = Math.hypot(x1 - x0, y1 - y0) || 1;
+          const nx = -(y1 - y0) / length;
+          const ny = (x1 - x0) / length;
+          const press = pressure((u0 + u1) / 2);
+          const step = Math.round(u0 / STEP);
+          s.bristles.forEach((bristle, b) => {
+            // Past its dry point a bristle skips more and more of the canvas.
+            if (u0 > bristle.dry) {
+              const dryness = (u0 - bristle.dry) / (1 - bristle.dry);
+              if (hash(index * 31 + b, step) < dryness * 0.9) return;
+            }
+            const spread = bristle.offset * s.size * press;
+            ctx!.globalAlpha = bristle.alpha;
+            ctx!.lineWidth = Math.max(1, s.size * bristle.size * press);
+            ctx!.beginPath();
+            ctx!.moveTo(x0 + nx * spread, y0 + ny * spread);
+            ctx!.lineTo(x1 + nx * spread, y1 + ny * spread);
+            ctx!.stroke();
+          });
+        }
+        s.drawn = Math.max(s.drawn, t);
+        // A few flecks where the brush lifts off.
+        if (raw >= 1 && !s.dabbed) {
+          s.dabbed = true;
+          const [x, y] = pointAt(s, 1);
+          for (let n = 0; n < 6; n++) {
+            ctx!.globalAlpha = between(0.5, 0.9);
+            ctx!.beginPath();
+            ctx!.arc(
+              x + between(-0.6, 0.6) * s.size,
+              y + between(-0.6, 0.6) * s.size,
+              s.size * between(0.02, 0.07),
+              0,
+              Math.PI * 2,
+            );
+            ctx!.fill();
+          }
+        }
+      });
+      ctx!.globalAlpha = 1;
+      ctx!.globalCompositeOperation = 'source-over';
+      return done;
+    }
+
+    function tick(now: number) {
+      if (!underpainted && art!.complete && art!.naturalWidth) {
+        underpaint();
+        paint!.dataset.state = 'waiting';
+      }
+      // Wait for the weather, but never more than three seconds.
+      if (
+        underpainted &&
+        !revealAt &&
+        (!pendingRef.current || now - begun > 3000)
+      ) {
+        revealAt = now;
+        paint!.dataset.state = 'painting';
+      }
+      if (revealAt && wipe((now - revealAt) / 1000)) {
+        paint!.dataset.state = 'done';
+        return;
+      }
+      frame = requestAnimationFrame(tick);
+    }
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   // The frame leans toward the pointer while the painting inside drifts the
   // other way, so it reads as a window with depth behind it.
@@ -494,6 +727,7 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
         />
         <div className="coastal-shade" />
         <canvas className="coastal-motion" ref={canvasRef} />
+        <canvas className="coastal-paint" ref={paintRef} />
       </div>
       <div className="coastal-hotspots" ref={hotspotsRef}>
         <button

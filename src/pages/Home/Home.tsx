@@ -172,6 +172,47 @@ function toggleJob(event: MouseEvent<HTMLElement>) {
   ]);
 }
 
+const SCRAMBLE = 'abcdefghijklmnopqrstuvwxyz0123456789°';
+const scramble = (length: number) =>
+  Array.from(
+    { length },
+    () => SCRAMBLE[Math.floor(Math.random() * SCRAMBLE.length)],
+  ).join('');
+const PLACEHOLDER = '·'.repeat(16);
+
+// The caption's weather, in a fixed-width slot so the line never re-centres.
+// While the forecast loads the slot scrambles; when it lands, the text
+// decodes into place left to right.
+function WeatherReadout({ text }: { text: string | undefined }) {
+  const [shown, setShown] = useState(text ?? PLACEHOLDER);
+
+  useEffect(() => {
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const start = performance.now();
+    const timer = window.setInterval(() => {
+      if (text === undefined) {
+        setShown(still ? PLACEHOLDER : scramble(PLACEHOLDER.length));
+        return;
+      }
+      const resolved = still
+        ? text.length
+        : Math.floor((performance.now() - start) / 32);
+      setShown(
+        text.slice(0, resolved) + scramble(Math.max(0, text.length - resolved)),
+      );
+      if (resolved >= text.length) window.clearInterval(timer);
+    }, 55);
+    return () => window.clearInterval(timer);
+  }, [text]);
+
+  return (
+    <span className="weather-readout" data-loading={text === undefined}>
+      <span aria-hidden="true">{shown}</span>
+      <span className="sr-only">{text ?? 'Loading the weather'}</span>
+    </span>
+  );
+}
+
 function Token({
   children,
   Icon,
@@ -246,13 +287,26 @@ export const Home = () => {
       <main id="main">
         <section className="hero" aria-label="St. Petersburg, Florida">
           <div className="scene-frame">
-            <CoastalScene dark={dark} effect={effect} weather={weather} />
+            <CoastalScene
+              dark={dark}
+              effect={effect}
+              weather={weather}
+              pending={sky === 'live' && weather === undefined}
+            />
           </div>
           <p className="scene-caption">
-            St. Petersburg, FL · <time>{localTime}</time>
-            {sky !== 'live'
-              ? ` · sky set to ${sky}`
-              : weather && ` · ${weather.temperature}°F, ${weather.label}`}
+            St. Petersburg, FL · <time>{localTime}</time> ·{' '}
+            <WeatherReadout
+              text={
+                sky !== 'live'
+                  ? `sky set to ${sky}`
+                  : weather === undefined
+                    ? undefined
+                    : weather
+                      ? `${weather.temperature}°F, ${weather.label}`
+                      : 'weather offline'
+              }
+            />
           </p>
         </section>
 

@@ -29,8 +29,9 @@ function describe(code: number): Pick<Weather, 'effect' | 'label'> {
   return { effect: 'clear', label: 'fair' };
 }
 
+// undefined while loading, null when the forecast is unavailable.
 export function useStPeteWeather() {
-  const [weather, setWeather] = useState<Weather | null>(null);
+  const [weather, setWeather] = useState<Weather | null>();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -45,6 +46,7 @@ export function useStPeteWeather() {
       )
       .catch(() => {
         // The scene simply stays clear when the weather is unavailable.
+        if (!controller.signal.aborted) setWeather(null);
       });
     return () => controller.abort();
   }, []);
