@@ -6,6 +6,7 @@ import { routeTree } from './routeTree.gen.ts';
 import { Spinner } from './components/ui/spinner.tsx';
 import { NotFound } from './pages/NotFound/NotFound.tsx';
 import { playSound } from './lib/uiSounds.ts';
+import { noteNavigation } from './lib/useReveal.ts';
 
 const router = createRouter({
   routeTree,
@@ -18,7 +19,10 @@ const router = createRouter({
 
 // A soft page-turn sound on every route change after the first load.
 router.subscribe('onBeforeNavigate', ({ pathChanged, fromLocation }) => {
-  if (fromLocation && pathChanged) playSound('navigate');
+  if (fromLocation && pathChanged) {
+    noteNavigation();
+    playSound('navigate');
+  }
 });
 // The router never sees links that leave the site or open a new tab, so they
 // get the same sound here.
