@@ -31,9 +31,9 @@ export function setDarkTheme(dark: boolean) {
   document
     .querySelector('meta[name="theme-color"]')
     ?.setAttribute('content', dark ? '#0e0e0e' : '#fbfbfb');
-  // Mobile Safari picks its top bar color from the fixed edge strip when it
-  // first appears and keeps it after the color changes. Dropping the strip for
-  // a frame makes Safari read it again in the new theme.
+  // Mobile Safari reads the top edge's color (html's background, since the fade
+  // has no background color) on repaint and misses a theme change. Dropping the
+  // fixed fade for a frame makes it read the new color.
   const edges = document.querySelectorAll<HTMLElement>('.edge-fade');
   edges.forEach((edge) => (edge.style.display = 'none'));
   requestAnimationFrame(() =>
