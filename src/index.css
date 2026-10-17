@@ -116,10 +116,18 @@ body {
   font: 10px var(--mono);
 }
 .command-menu ul {
+  /* Flex items won't shrink below their content by default, so without this
+     the list is clipped by the dialog instead of scrolling inside it. */
+  min-height: 0;
   margin: 0;
   padding: 6px;
   overflow-y: auto;
+  overscroll-behavior: contain;
   list-style: none;
+}
+/* Freeze the page behind the open menu, so swipes never scroll it. */
+html:has(.command-menu[open]) {
+  overflow: hidden;
 }
 .command-menu li {
   display: flex;
