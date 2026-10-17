@@ -58,22 +58,9 @@ export function CommandMenu() {
       setQuery('');
       setActive(0);
       setNotice('');
-      // showModal focuses the search field. On touch screens it opens with no
-      // keyboard, so the list can be browsed and scrolled; the first tap on the
-      // field brings the keyboard up (see onPointerDown).
-      const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
-      if (inputRef.current) inputRef.current.inputMode = touch ? 'none' : '';
       dialog.showModal();
-      // iOS Safari doesn't register the list as scrollable while the dialog is
-      // mid-animation (a transform), and only notices after a layout change,
-      // like the keyboard opening. Rebuild its scroll area once it has settled.
-      window.setTimeout(() => {
-        const list = dialog.querySelector('ul');
-        if (!list) return;
-        list.style.overflowY = 'hidden';
-        void list.offsetHeight;
-        list.style.overflowY = '';
-      }, 250);
+      // Don't pop the keyboard on touch screens; tapping the field still does.
+      if (matchMedia('(pointer: coarse)').matches) inputRef.current?.blur();
     }
     if (!menu && dialog.open) dialog.close();
   }, [menu]);
@@ -208,14 +195,6 @@ export function CommandMenu() {
           <input
             ref={inputRef}
             value={query}
-            onPointerDown={(event) => {
-              const input = event.currentTarget;
-              if (input.inputMode !== 'none') return;
-              // Turn the keyboard back on and let this tap focus the field
-              // again, which opens it.
-              input.inputMode = '';
-              input.blur();
-            }}
             onChange={(event) => {
               setQuery(event.target.value);
               setActive(0);

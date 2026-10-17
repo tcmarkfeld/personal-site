@@ -121,10 +121,6 @@ body {
   overscroll-behavior: contain;
   list-style: none;
 }
-/* Freeze the page behind the open menu, so swipes never scroll it. */
-html:has(.command-menu[open]) {
-  overflow: hidden;
-}
 .command-menu li {
   display: flex;
   align-items: center;
