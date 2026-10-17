@@ -78,6 +78,10 @@ body {
   font-family: var(--sans);
   box-shadow: 0 30px 80px #0a141d66;
 }
+/* On touch screens the dialog takes focus instead of the field. */
+.command-menu:focus {
+  outline: none;
+}
 .command-menu[open] {
   display: flex;
   flex-direction: column;

@@ -35,6 +35,7 @@ export function CommandMenu() {
   const { menu, sky, sound, uiSound } = useSiteState();
   const storm = sky === 'storm';
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState('');
   const [active, setActive] = useState(0);
   const [notice, setNotice] = useState('');
@@ -57,7 +58,17 @@ export function CommandMenu() {
       setQuery('');
       setActive(0);
       setNotice('');
+      // showModal focuses the search field, which pops the keyboard on a phone.
+      // On touch screens keep it read-only while the menu opens and move focus
+      // to the dialog, so the keyboard waits until the field is tapped.
+      const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
+      const input = inputRef.current;
+      if (touch && input) input.readOnly = true;
       dialog.showModal();
+      if (touch && input) {
+        dialog.focus();
+        input.readOnly = false;
+      }
     }
     if (!menu && dialog.open) dialog.close();
   }, [menu]);
@@ -181,6 +192,7 @@ export function CommandMenu() {
         className="command-menu"
         ref={dialogRef}
         aria-label="Command menu"
+        tabIndex={-1}
         onClose={() => setSiteState({ menu: false })}
         onClick={(event) => {
           if (event.target === event.currentTarget)
@@ -190,6 +202,7 @@ export function CommandMenu() {
         <div className="command-search">
           <Search size={16} aria-hidden="true" />
           <input
+            ref={inputRef}
             value={query}
             onChange={(event) => {
               setQuery(event.target.value);
@@ -216,7 +229,6 @@ export function CommandMenu() {
             }
             role="combobox"
             aria-expanded="true"
-            autoFocus
           />
           <kbd>esc</kbd>
         </div>
