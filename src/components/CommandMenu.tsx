@@ -18,6 +18,7 @@ import { ROUTES } from '@/Navigation/routeEnum';
 import { posts } from '@/pages/Blog/posts';
 import { setSiteState, useSiteState } from '@/lib/siteState';
 import { setDarkTheme, useDarkTheme } from '@/lib/theme';
+import { playSound } from '@/lib/uiSounds';
 
 type Command = {
   group: string;
@@ -31,7 +32,7 @@ const email = 'mail@timmarkfeld.com';
 export function CommandMenu() {
   const navigate = useNavigate();
   const dark = useDarkTheme();
-  const { menu, sky, sound } = useSiteState();
+  const { menu, sky, sound, uiSound } = useSiteState();
   const storm = sky === 'storm';
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [query, setQuery] = useState('');
@@ -63,7 +64,10 @@ export function CommandMenu() {
 
   const commands = useMemo<Command[]>(() => {
     const go = (hash: string) => () => navigate({ to: ROUTES.HOME, hash });
-    const open = (url: string) => () => window.open(url, '_blank', 'noopener');
+    const open = (url: string) => () => {
+      playSound('navigate');
+      window.open(url, '_blank', 'noopener');
+    };
     return [
       {
         group: 'Go to',
@@ -127,6 +131,12 @@ export function CommandMenu() {
       },
       {
         group: 'Do',
+        label: uiSound ? 'Mute interface sounds' : 'Turn on interface sounds',
+        Icon: uiSound ? VolumeX : Volume2,
+        run: () => setSiteState({ uiSound: !uiSound }),
+      },
+      {
+        group: 'Do',
         label: storm ? 'Calm the storm' : 'Summon a storm',
         Icon: CloudLightning,
         run: () => {
@@ -147,7 +157,7 @@ export function CommandMenu() {
         run: open('https://linkedin.com/in/timothy-markfeld'),
       },
     ];
-  }, [dark, navigate, sound, storm]);
+  }, [dark, navigate, sound, storm, uiSound]);
 
   const results = commands.filter(({ label, group }) =>
     `${group} ${label}`.toLowerCase().includes(query.trim().toLowerCase()),

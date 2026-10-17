@@ -30,25 +30,48 @@ function describe(code: number): Pick<Weather, 'effect' | 'label'> {
 }
 
 // undefined while loading, null when the forecast is unavailable.
+// The forecast is kept between visits to the homepage, so navigating away and
+// back doesn't refetch it. It goes stale after ten minutes.
+const FRESH_MS = 10 * 60_000;
+let cached: { weather: Weather; at: number } | undefined;
+let request: Promise<Weather | null> | undefined;
+
+const fresh = () =>
+  cached && Date.now() - cached.at < FRESH_MS ? cached.weather : undefined;
+
+function loadWeather() {
+  const hit = fresh();
+  if (hit) return Promise.resolve(hit);
+  // Callers that arrive while a request is in flight share it.
+  request ??= fetch(url)
+    .then((response) => (response.ok ? response.json() : Promise.reject()))
+    .then(({ current }) => {
+      const weather = {
+        ...describe(current.weather_code),
+        temperature: Math.round(current.temperature_2m),
+        wind: Math.round(current.wind_speed_10m),
+      };
+      cached = { weather, at: Date.now() };
+      return weather;
+    })
+    // A failure isn't cached, so the next visit tries again. The scene simply
+    // stays clear meanwhile.
+    .catch(() => null)
+    .finally(() => (request = undefined));
+  return request;
+}
+
 export function useStPeteWeather() {
-  const [weather, setWeather] = useState<Weather | null>();
+  const [weather, setWeather] = useState<Weather | null | undefined>(fresh);
 
   useEffect(() => {
-    const controller = new AbortController();
-    fetch(url, { signal: controller.signal })
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then(({ current }) =>
-        setWeather({
-          ...describe(current.weather_code),
-          temperature: Math.round(current.temperature_2m),
-          wind: Math.round(current.wind_speed_10m),
-        }),
-      )
-      .catch(() => {
-        // The scene simply stays clear when the weather is unavailable.
-        if (!controller.signal.aborted) setWeather(null);
-      });
-    return () => controller.abort();
+    let mounted = true;
+    void loadWeather().then((next) => {
+      if (mounted) setWeather(next);
+    });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return weather;

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Weather, WeatherEffect } from '@/lib/useStPeteWeather';
 
 const cloudPaths = [
@@ -6,6 +6,9 @@ const cloudPaths = [
   'M730 210c25-25 47-22 65-13 8-39 57-51 89-18 25-12 60 0 65 23 27-8 57 0 74 21H730Z',
   'M900 380c22-20 42-19 59-10 7-32 48-39 69-15 29-20 63-9 73 17 30-10 50 0 62 17H900Z',
 ];
+
+// The scene paints itself in once per page load, not on every return home.
+let paintedIn = false;
 
 type SceneProps = {
   dark: boolean;
@@ -22,6 +25,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
   const hotspotsRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef(0);
   const paintRef = useRef<HTMLCanvasElement>(null);
+  const [paintIn] = useState(() => !paintedIn);
   const pendingRef = useRef(pending);
 
   useEffect(() => {
@@ -250,6 +254,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       }
       if (revealAt && wipe((now - revealAt) / 1000)) {
         paint!.dataset.state = 'done';
+        paintedIn = true;
         return;
       }
       frame = requestAnimationFrame(tick);
@@ -732,7 +737,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
         />
         <div className="coastal-shade" />
         <canvas className="coastal-motion" ref={canvasRef} />
-        <canvas className="coastal-paint" ref={paintRef} />
+        {paintIn && <canvas className="coastal-paint" ref={paintRef} />}
       </div>
       <div className="coastal-hotspots" ref={hotspotsRef}>
         <button

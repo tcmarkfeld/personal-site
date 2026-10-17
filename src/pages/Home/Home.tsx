@@ -26,6 +26,7 @@ import { useSiteState } from '@/lib/siteState';
 import { useDarkTheme } from '@/lib/theme';
 import { useReveal } from '@/lib/useReveal';
 import { useStPeteWeather } from '@/lib/useStPeteWeather';
+import { playSound } from '@/lib/uiSounds';
 import './Home.css';
 
 const experience = [
@@ -87,10 +88,11 @@ const jobMotion = new WeakMap<HTMLDetailsElement, Animation[]>();
 // Opens a job card on a spring with its content arriving in turn, and closes it
 // with the content lifting away before the card folds shut.
 function toggleJob(event: MouseEvent<HTMLElement>) {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  event.preventDefault();
   const summary = event.currentTarget;
   const job = summary.parentElement as HTMLDetailsElement;
+  playSound(!job.open || 'closing' in job.dataset ? 'open' : 'close');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  event.preventDefault();
   const body = job.querySelector<HTMLElement>('.job-body')!;
   const logo = job.querySelector<HTMLElement>('.job-logo')!;
   const from = job.offsetHeight;
@@ -185,8 +187,13 @@ const PLACEHOLDER = '·'.repeat(16);
 // decodes into place left to right.
 function WeatherReadout({ text }: { text: string | undefined }) {
   const [shown, setShown] = useState(text ?? PLACEHOLDER);
+  // Text that's already known on arrival (cached weather, a sky override)
+  // simply shows; only text that changes while you're here decodes in.
+  const arrived = useRef(text);
 
   useEffect(() => {
+    if (text !== undefined && text === arrived.current) return;
+    arrived.current = undefined;
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const start = performance.now();
     const timer = window.setInterval(() => {

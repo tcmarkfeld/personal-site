@@ -46,7 +46,7 @@ export function setAmbience(on: boolean) {
     context ??= new AudioContext();
     master ??= build(context);
     void context.resume();
-    master.gain.setTargetAtTime(0.5, context.currentTime, 0.8);
+    master.gain.setTargetAtTime(0.25, context.currentTime, 0.8);
     return;
   }
   if (!context || !master) return;
