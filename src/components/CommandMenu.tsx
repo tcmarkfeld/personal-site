@@ -58,17 +58,12 @@ export function CommandMenu() {
       setQuery('');
       setActive(0);
       setNotice('');
-      // showModal focuses the search field, which pops the keyboard on a phone.
-      // On touch screens keep it read-only while the menu opens and move focus
-      // to the dialog, so the keyboard waits until the field is tapped.
+      // showModal focuses the search field. On touch screens it opens with no
+      // keyboard, so the list can be browsed and scrolled; the first tap on the
+      // field brings the keyboard up (see onPointerDown).
       const touch = matchMedia('(hover: none) and (pointer: coarse)').matches;
-      const input = inputRef.current;
-      if (touch && input) input.readOnly = true;
+      if (inputRef.current) inputRef.current.inputMode = touch ? 'none' : '';
       dialog.showModal();
-      if (touch && input) {
-        dialog.focus();
-        input.readOnly = false;
-      }
     }
     if (!menu && dialog.open) dialog.close();
   }, [menu]);
@@ -192,7 +187,6 @@ export function CommandMenu() {
         className="command-menu"
         ref={dialogRef}
         aria-label="Command menu"
-        tabIndex={-1}
         onClose={() => setSiteState({ menu: false })}
         onClick={(event) => {
           if (event.target === event.currentTarget)
@@ -204,6 +198,14 @@ export function CommandMenu() {
           <input
             ref={inputRef}
             value={query}
+            onPointerDown={(event) => {
+              const input = event.currentTarget;
+              if (input.inputMode !== 'none') return;
+              // Turn the keyboard back on and let this tap focus the field
+              // again, which opens it.
+              input.inputMode = '';
+              input.blur();
+            }}
             onChange={(event) => {
               setQuery(event.target.value);
               setActive(0);
