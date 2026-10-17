@@ -163,6 +163,14 @@
   background: linear-gradient(var(--bg) 20%, transparent);
   pointer-events: none;
 }
+/* On phones the page runs under the status bar (viewport-fit=cover), and the
+   fade there reads as a solid top bar. Let the content show through instead;
+   the blurred nav pill stays readable on its own. */
+@media (hover: none) and (pointer: coarse) {
+  .edge-fade {
+    display: none;
+  }
+}
 
 /* Hero: the coast, feathered into the page */
 .hero {
