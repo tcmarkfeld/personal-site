@@ -89,6 +89,28 @@ function roomOf(ctx: AudioContext) {
   return input;
 }
 
+// A key press: a crisp click over a short soft thock. The thock's pitch lets
+// open sit a touch higher than close.
+function tick(ctx: AudioContext, out: AudioNode, pitch: number) {
+  burst(ctx, out, {
+    type: 'bandpass',
+    from: 3000,
+    to: 2600,
+    q: 1.2,
+    gain: 0.12,
+    attack: 0.001,
+    length: 0.01,
+  });
+  tone(ctx, out, {
+    type: 'sine',
+    from: pitch,
+    to: pitch * 0.7,
+    length: 0.05,
+    gain: 0.09,
+    attack: 0.002,
+  });
+}
+
 // Each sound says whether it plays through the room's echo. The drawer
 // sounds stay dry and close, like something physical under your hand.
 const sounds: Record<
@@ -99,75 +121,9 @@ const sounds: Record<
     play: (ctx: AudioContext, out: AudioNode) => void;
   }
 > = {
-  // A drawer gliding out: a soft slide of air that lifts, then catches.
-  open: {
-    echo: false,
-    volume: 1.8,
-    play: (ctx, out) => {
-      burst(ctx, out, {
-        type: 'bandpass',
-        from: 500,
-        to: 1400,
-        q: 0.8,
-        gain: 0.035,
-        attack: 0.03,
-        length: 0.12,
-      });
-      burst(ctx, out, {
-        type: 'bandpass',
-        from: 3200,
-        to: 3000,
-        q: 3,
-        gain: 0.05,
-        attack: 0.002,
-        length: 0.022,
-        delay: 0.085,
-      });
-      tone(ctx, out, {
-        type: 'sine',
-        from: 260,
-        to: 240,
-        length: 0.04,
-        gain: 0.018,
-        delay: 0.085,
-      });
-    },
-  },
-  // A drawer settling shut: a quick falling slide into a muted thump.
-  close: {
-    echo: false,
-    volume: 1.8,
-    play: (ctx, out) => {
-      burst(ctx, out, {
-        type: 'bandpass',
-        from: 1400,
-        to: 500,
-        q: 0.8,
-        gain: 0.03,
-        attack: 0.015,
-        length: 0.08,
-      });
-      tone(ctx, out, {
-        type: 'sine',
-        from: 150,
-        to: 100,
-        length: 0.08,
-        gain: 0.07,
-        delay: 0.06,
-        attack: 0.003,
-      });
-      burst(ctx, out, {
-        type: 'bandpass',
-        from: 1800,
-        to: 1700,
-        q: 2.5,
-        gain: 0.035,
-        attack: 0.002,
-        length: 0.02,
-        delay: 0.06,
-      });
-    },
-  },
+  // Drawers open and close with a dry key-press tick.
+  open: { echo: false, volume: 1.4, play: (ctx, out) => tick(ctx, out, 240) },
+  close: { echo: false, volume: 1.4, play: (ctx, out) => tick(ctx, out, 180) },
   // A page brushing past.
   navigate: {
     echo: true,

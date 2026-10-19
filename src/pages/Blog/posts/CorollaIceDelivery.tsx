@@ -1,5 +1,5 @@
 import { ArrowUpRight } from 'lucide-react';
-import { useDarkTheme } from '@/lib/theme';
+import { PhoneShot } from '@/components/PhoneShot';
 
 const facts = [
   { label: 'Role', value: 'Full Stack Engineer' },
@@ -65,7 +65,6 @@ const story = [
 ];
 
 export function CorollaIceDelivery() {
-  const dark = useDarkTheme();
   return (
     <>
       <section className="column post-lede">
@@ -79,18 +78,10 @@ export function CorollaIceDelivery() {
       <div className="case-screens" data-reveal>
         {screens.map((screen) => (
           <figure key={screen.title}>
-            <div className="phone-shot">
-              <img
-                // Each screen has a dark-mode twin named with a -dark suffix.
-                src={
-                  dark ? screen.src.replace('.webp', '-dark.webp') : screen.src
-                }
-                alt={`${screen.title} screen of the Corolla Ice Delivery app`}
-                width="640"
-                height="1392"
-                loading="lazy"
-              />
-            </div>
+            <PhoneShot
+              src={screen.src}
+              alt={`${screen.title} screen of the Corolla Ice Delivery app`}
+            />
             <figcaption>
               <strong>{screen.title}</strong>
               {screen.caption}

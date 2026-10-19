@@ -765,11 +765,23 @@
   rotate: -7deg;
   transition: rotate 0.4s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
+.phone-shot {
+  display: grid;
+}
 .phone-shot img {
   display: block;
+  grid-area: 1 / 1;
   width: 100%;
   height: auto;
   border-radius: 19px;
+  transition: opacity 0.3s ease;
+}
+.phone-screen-dark,
+.site[data-theme='dark'] .phone-screen-light {
+  opacity: 0;
+}
+.site[data-theme='dark'] .phone-screen-dark {
+  opacity: 1;
 }
 /* On a dark page with a dark screen, a black frame vanishes: give it a
    titanium tone, a light rim, and a thin line where the screen meets it. */
