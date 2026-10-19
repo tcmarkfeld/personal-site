@@ -126,29 +126,6 @@
   color: var(--strong);
   box-shadow: var(--shadow);
 }
-.pill-nav [data-tip]::after {
-  content: attr(data-tip);
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 50%;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background: var(--strong);
-  color: var(--bg);
-  font-size: 11px;
-  white-space: nowrap;
-  opacity: 0;
-  translate: -50% -4px;
-  pointer-events: none;
-  transition:
-    opacity 0.15s ease,
-    translate 0.15s ease;
-}
-.pill-nav [data-tip]:hover::after,
-.pill-nav [data-tip]:focus-visible::after {
-  opacity: 1;
-  translate: -50% 0;
-}
 .pill-divider {
   width: 1px;
   height: 18px;
@@ -255,14 +232,11 @@
     height: 100%;
     background: var(--bg);
     pointer-events: none;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.3s ease;
   }
 }
 .coastal-paint[data-state] {
   background: none;
-}
-.coastal-paint[data-state='waiting'] {
-  animation: underpaint-breathe 1.6s ease-in-out infinite;
 }
 .coastal-paint[data-state='done'] {
   opacity: 0;
@@ -271,7 +245,6 @@
 .coastal-hotspots {
   transition: opacity 0.4s ease;
 }
-.scene-frame:has(.coastal-paint[data-state='waiting']) .coastal-hotspots,
 .scene-frame:has(.coastal-paint[data-state='painting']) .coastal-hotspots {
   opacity: 0;
 }
@@ -280,11 +253,6 @@
     .scene-frame:has(.coastal-paint:not([data-state]))
     .coastal-hotspots {
     opacity: 0;
-  }
-}
-@keyframes underpaint-breathe {
-  50% {
-    opacity: 0.82;
   }
 }
 .scene-caption {
@@ -381,34 +349,14 @@
 }
 
 /* Bio */
+/* The name in the favicon's Bodoni italic, so it doesn't read as a link. */
+.bio-name {
+  color: var(--strong);
+  font: italic 400 1.15em var(--serif);
+  line-height: 1;
+}
 .bio p + p {
   margin-top: 18px;
-}
-/* A highlighter stroke that sweeps across the role once the bio is in view. */
-.role-mark {
-  margin: 0 -3px;
-  padding: 0 3px;
-  border-radius: 3px;
-  background: linear-gradient(
-      transparent 55%,
-      color-mix(in srgb, var(--accent) 30%, transparent) 55%,
-      color-mix(in srgb, var(--accent) 30%, transparent) 92%,
-      transparent 92%
-    )
-    no-repeat 0 0 / 0% 100%;
-  color: var(--strong);
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
-  transition: background-size 0.9s cubic-bezier(0.65, 0, 0.25, 1) 0.15s;
-}
-.bio[data-lit='true'] .role-mark {
-  background-size: 100% 100%;
-}
-@media (prefers-reduced-motion: reduce) {
-  .role-mark {
-    background-size: 100% 100%;
-    transition: none;
-  }
 }
 .token {
   --delay: calc(var(--order, 0) * 140ms);
@@ -468,12 +416,6 @@
   transform-origin: 60% 55%;
   animation: palm-sway 3.2s ease-in-out calc(var(--delay) + 0.7s) infinite;
 }
-.bio[data-lit='true'] .server-led {
-  animation: led-blink 1.8s steps(1) calc(var(--delay) + 0.7s) infinite;
-}
-.bio[data-lit='true'] .server-led + .server-led {
-  animation-duration: 1.3s;
-}
 .bio[data-lit='true'] .heart-shape {
   transform-origin: center;
   animation: heart-beat 1.4s ease-in-out calc(var(--delay) + 0.7s) infinite;
@@ -494,14 +436,13 @@
   transform-origin: center;
   animation: wheel-roll 0.8s linear calc(var(--delay) + 0.7s) infinite;
 }
-.bio[data-lit='true'] .sparkle-main {
-  transform-origin: center;
-  animation: twinkle 2.4s ease-in-out calc(var(--delay) + 0.7s) infinite;
+.bio-icon .nodes-pulse {
+  stroke-dasharray: 3 27;
+  opacity: 0;
 }
-.bio[data-lit='true'] .sparkle-small,
-.bio[data-lit='true'] .sparkle-dot {
-  transform-origin: center;
-  animation: twinkle 2.4s ease-in-out calc(var(--delay) + 1.9s) infinite;
+.bio[data-lit='true'] .nodes-pulse {
+  opacity: 1;
+  animation: node-pulse 2.4s linear calc(var(--delay) + 0.7s) infinite;
 }
 @keyframes palm-sway {
   0%,
@@ -510,15 +451,6 @@
   }
   50% {
     rotate: 6deg;
-  }
-}
-@keyframes led-blink {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.15;
   }
 }
 @keyframes heart-beat {
@@ -556,20 +488,23 @@
     rotate: 360deg;
   }
 }
-@keyframes twinkle {
-  0%,
-  100% {
-    scale: 1;
-    opacity: 1;
+@keyframes node-pulse {
+  from {
+    stroke-dashoffset: 30;
   }
-  50% {
-    scale: 0.6;
-    opacity: 0.55;
+  to {
+    stroke-dashoffset: 0;
   }
+}
+/* Logo links have no tone of their own; use the strong text colour every
+   other link on the site uses. */
+.token-logo {
+  --tone: var(--strong);
 }
 .token-logo img {
   display: inline-block;
-  margin-right: 5px;
+  /* A real space sits before the logo (4px in Inter here); match it after. */
+  margin-right: 4px;
   border-radius: 4px;
   vertical-align: -3px;
 }
@@ -752,33 +687,43 @@
   font-size: 12px;
   text-align: center;
 }
+/* Project details as a spec sheet: the name in the bio's Bodoni italic, then
+   label/value rows between hairlines. */
 .project-info {
-  padding: 16px;
-  border-radius: 18px;
-  background: var(--card);
-  font-size: 12px;
+  padding-top: 2px;
+  font-size: 13px;
   line-height: 1.5;
 }
 .project-info h3 {
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   color: var(--strong);
-  font-size: 13px;
-  font-weight: 500;
+  font: italic 400 24px/1.1 var(--serif);
+}
+.project-info p {
+  margin-bottom: 16px;
 }
 .project-info dl {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px 12px;
   margin: 0;
+  border-top: 1px solid var(--line);
 }
-.project-info .project-about {
-  grid-column: 1 / -1;
+.project-info dl > div {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid var(--line);
 }
 .project-info dt {
-  margin-bottom: 2px;
+  padding-top: 2px;
   color: var(--muted);
+  font: 10.5px var(--mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .project-info dd {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
   margin: 0;
   color: var(--strong);
 }
@@ -825,6 +770,17 @@
   width: 100%;
   height: auto;
   border-radius: 19px;
+}
+/* On a dark page with a dark screen, a black frame vanishes: give it a
+   titanium tone, a light rim, and a thin line where the screen meets it. */
+.site[data-theme='dark'] .phone-shot {
+  background: #2a2b2e;
+  box-shadow:
+    inset 0 0 0 1px #ffffff2e,
+    0 24px 40px -18px #000000cc;
+}
+.site[data-theme='dark'] .phone-shot img {
+  box-shadow: 0 0 0 1px #ffffff14;
 }
 .project:hover .phone-shot {
   rotate: 0deg;
@@ -982,6 +938,13 @@
   color: var(--strong);
   translate: 0 -2px;
 }
+/* While lifted, fill the 2px gap under the icon so the hover area stays where
+   it started and hovering its bottom edge doesn't flicker. */
+.footer-links a:hover::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 -2px;
+}
 .footer-links [data-tip]::after {
   content: attr(data-tip);
   position: absolute;
@@ -1013,8 +976,7 @@
 }
 .signoff {
   color: var(--strong);
-  font: 500 24px var(--hand);
-  rotate: -3deg;
+  font: italic 400 21px var(--serif);
 }
 .footer-tools {
   display: flex;

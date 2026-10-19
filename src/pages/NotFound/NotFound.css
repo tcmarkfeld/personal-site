@@ -85,7 +85,7 @@
 }
 .lost-chart .lost-note {
   fill: var(--text);
-  font: 500 17px var(--hand);
+  font: italic 400 16px var(--serif);
 }
 
 /* The shore hotspot links home; the hero's white dot, in accent */

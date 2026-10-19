@@ -47,30 +47,6 @@ export function PalmIcon() {
   );
 }
 
-export function ServerIcon() {
-  return (
-    <Icon>
-      <rect className="duo" x="3" y="4" width="18" height="7" rx="2" />
-      <rect className="duo" x="3" y="13" width="18" height="7" rx="2" />
-      <path d="M11 7.5h6M11 16.5h6" />
-      <circle
-        className="server-led"
-        cx="7"
-        cy="7.5"
-        r="1"
-        fill="currentColor"
-      />
-      <circle
-        className="server-led"
-        cx="7"
-        cy="16.5"
-        r="1"
-        fill="currentColor"
-      />
-    </Icon>
-  );
-}
-
 export function HeartIcon() {
   return (
     <Icon>
@@ -96,24 +72,15 @@ export function TruckIcon() {
   );
 }
 
-export function SparkleIcon() {
+// Three nodes of a network; a pulse travels the links once the bio is lit.
+export function NodesIcon() {
   return (
     <Icon>
-      <path
-        className="duo sparkle-main"
-        d="M10 3l1.8 4.9L17 10l-5.2 2.1L10 17l-1.8-4.9L3 10l5.2-2.1Z"
-      />
-      <path
-        className="duo sparkle-small"
-        d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8Z"
-      />
-      <circle
-        className="sparkle-dot"
-        cx="19"
-        cy="5"
-        r="1"
-        fill="currentColor"
-      />
+      <path d="M8.6 6.5h6.8M7.25 8.78l3.5 6.44M16.75 8.78l-3.5 6.44" />
+      <path className="nodes-pulse" d="M6 6.5h12l-6 11Z" pathLength="30" />
+      <circle className="duo" cx="6" cy="6.5" r="2.6" />
+      <circle className="duo" cx="18" cy="6.5" r="2.6" />
+      <circle className="duo" cx="12" cy="17.5" r="2.6" />
     </Icon>
   );
 }

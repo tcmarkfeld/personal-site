@@ -23,6 +23,16 @@ const ConductorFigure = lazy(() =>
   })),
 );
 
+// One palette for every panel, from the site itself: the sky-blue accent, a
+// pale blue-grey, and the ivory of the favicon. Dark mode gets its own cool
+// palette, since darkening the ivory turns it a muddy yellow.
+const PANEL_COLORS = {
+  light: ['#7fb9e6', '#d7e6f1', '#f3ede4'],
+  dark: ['#2f5677', '#18212b', '#2a3542'],
+} as const;
+// Starting points in the flow, picked so the panels look alike.
+const PANEL_STARTS = [12, 88, 50, 69];
+
 type Project = {
   title: string;
   about: string;
@@ -30,7 +40,6 @@ type Project = {
   alt: string;
   year: string;
   stack: string;
-  colors: readonly [string, string, string];
   stage: ReactNode;
   href?: string;
   to?: string;
@@ -46,7 +55,6 @@ const projects: Project[] = [
     alt: 'Illustration of a typewriter carriage typing a word into a printed page while the rest of the line re-wraps.',
     year: '2026',
     stack: 'Rust, egui, PDFium',
-    colors: ['#2f6bff', '#9cc8ff', '#f4d9c6'],
     href: 'https://revise.timmarkfeld.com/',
     linkLabel: 'revise.timmarkfeld.com',
     stage: <ReviseFigure />,
@@ -58,7 +66,6 @@ const projects: Project[] = [
     alt: 'Illustration of a tape slitter cutting an HL7 message at each field delimiter and sorting the fields into bins.',
     year: '2026',
     stack: 'C#, .NET',
-    colors: ['#e0445a', '#f6a6b2', '#b9a4f5'],
     href: 'https://github.com/tcmarkfeld/HL7Kit',
     linkLabel: 'GitHub',
     packages: ['HL7Kit', 'HL7Kit.Fhir'],
@@ -71,7 +78,6 @@ const projects: Project[] = [
     alt: 'Illustration of a key-duplicating machine copying the cuts of a template key onto a blank.',
     year: '2026',
     stack: 'C#, Terraform',
-    colors: ['#d9a21b', '#f7dc7a', '#f5efd9'],
     href: 'https://github.com/tcmarkfeld/Conductor',
     linkLabel: 'GitHub',
     packages: ['Conductor.Tool'],
@@ -85,7 +91,6 @@ const projects: Project[] = [
     alt: 'Screenshot of the Corolla Ice Delivery driver app showing the route for the day.',
     year: '2020 — 2023',
     stack: 'React Native, Node, MySQL',
-    colors: ['#1f9d9b', '#9ee0dc', '#f3d9a4'],
     to: ROUTES.COROLLA,
     linkLabel: 'Read the post',
     stage: <PhoneShot />,
@@ -96,22 +101,22 @@ export function Gallery() {
   const dark = useDarkTheme();
   return (
     <div className="projects">
-      {projects.map((project) => (
+      {projects.map((project, index) => (
         <article className="project" key={project.title} data-reveal>
           <figure className="project-panel">
             <div className="project-stage" role="img" aria-label={project.alt}>
-              <ShaderBackdrop colors={project.colors} dim={dark} />
+              <ShaderBackdrop
+                colors={PANEL_COLORS[dark ? 'dark' : 'light']}
+                start={PANEL_STARTS[index]}
+              />
               <Suspense>{project.stage}</Suspense>
             </div>
             <figcaption>{project.caption}</figcaption>
           </figure>
           <div className="project-info">
             <h3>{project.title}</h3>
+            <p>{project.about}</p>
             <dl>
-              <div className="project-about">
-                <dt>About</dt>
-                <dd>{project.about}</dd>
-              </div>
               <div>
                 <dt>Year</dt>
                 <dd>{project.year}</dd>
@@ -120,8 +125,8 @@ export function Gallery() {
                 <dt>Built with</dt>
                 <dd>{project.stack}</dd>
               </div>
-              <div className="project-about">
-                <dt>{project.to ? 'Read' : 'View'}</dt>
+              <div>
+                <dt>Link</dt>
                 <dd>
                   {project.href ? (
                     <a href={project.href} target="_blank" rel="noreferrer">
@@ -139,19 +144,20 @@ export function Gallery() {
                 </dd>
               </div>
               {project.packages && (
-                <div className="project-about">
+                <div>
                   <dt>NuGet</dt>
-                  {project.packages.map((name) => (
-                    <dd key={name}>
+                  <dd>
+                    {project.packages.map((name) => (
                       <a
+                        key={name}
                         href={`https://www.nuget.org/packages/${name}`}
                         target="_blank"
                         rel="noreferrer"
                       >
                         {name} <ArrowUpRight size={12} aria-hidden="true" />
                       </a>
-                    </dd>
-                  ))}
+                    ))}
+                  </dd>
                 </div>
               )}
             </dl>

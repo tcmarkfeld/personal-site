@@ -6,7 +6,7 @@ From: St. Petersburg, Florida
 
 /* SITE */
 Built with: React, TypeScript, Vite, TanStack Router
-Fonts: Inter, Geist Mono, Caveat
+Fonts: Inter, Geist Mono, Bodoni
 Weather: Open-Meteo
 Contributions: github-contributions-api.jogruber.de
 Waves: synthesized in your browser with the Web Audio API

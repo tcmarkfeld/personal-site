@@ -32,9 +32,9 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
     pendingRef.current = pending;
   }, [pending]);
 
-  // The scene paints itself in once per visit: a washed-out underpainting
-  // waits while the weather loads, then brush strokes wipe it away to show
-  // the finished scene with the right weather already in it.
+  // The scene paints itself in once per visit: brush strokes wipe away a
+  // washed-out underpainting while the weather loads, and the last of it holds
+  // until the weather is in, so the scene never changes once it's revealed.
   useEffect(() => {
     const paint = paintRef.current;
     const scene = sceneRef.current;
@@ -179,6 +179,8 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
     // The brush presses in, carries, then lifts: narrow at both ends.
     const pressure = (u: number) => 0.4 + 0.6 * Math.sin(Math.PI * u) ** 0.45;
     const STEP = 0.012;
+    // Plays the strokes faster than their authored timing; about 0.75s in all.
+    const SPEED = 1.8;
 
     function wipe(elapsed: number) {
       ctx!.globalCompositeOperation = 'destination-out';
@@ -239,20 +241,14 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
     }
 
     function tick(now: number) {
+      // Paint while the weather loads, so it only has to be in by the end.
       if (!underpainted && art!.complete && art!.naturalWidth) {
         underpaint();
-        paint!.dataset.state = 'waiting';
-      }
-      // Wait for the weather, but never more than three seconds.
-      if (
-        underpainted &&
-        !revealAt &&
-        (!pendingRef.current || now - begun > 3000)
-      ) {
         revealAt = now;
         paint!.dataset.state = 'painting';
       }
-      if (revealAt && wipe((now - revealAt) / 1000)) {
+      const weatherIn = !pendingRef.current || now - begun > 3000;
+      if (revealAt && wipe(((now - revealAt) / 1000) * SPEED) && weatherIn) {
         paint!.dataset.state = 'done';
         paintedIn = true;
         return;

@@ -11,8 +11,7 @@ import {
 import {
   HeartIcon,
   PalmIcon,
-  ServerIcon,
-  SparkleIcon,
+  NodesIcon,
   TruckIcon,
 } from '@/components/BioIcons';
 import { ActivityGraph } from '@/components/ActivityGraph';
@@ -32,7 +31,7 @@ import './Home.css';
 const experience = [
   {
     company: 'FirmPilot',
-    logo: '/firmpilot_logo.jpg',
+    logo: '/firmpilot_logo.webp',
     role: 'Senior Software Engineer',
     date: '2025 — now',
     description:
@@ -44,7 +43,7 @@ const experience = [
   },
   {
     company: 'HCA Healthcare',
-    logo: '/hca_logo.jpg',
+    logo: '/hca_logo.webp',
     role: 'Data Integration Engineer II',
     date: '2023 — 2025',
     description:
@@ -321,46 +320,48 @@ export const Home = () => {
           <h1 className="sr-only">
             Timothy Markfeld, senior software engineer
           </h1>
-          <p>Hey,</p>
           <p>
-            I’m <strong>Tim</strong>, a{' '}
-            <mark className="role-mark">senior software engineer</mark> based in{' '}
+            I’m <span className="bio-name">Tim</span>, a software engineer in{' '}
             <Token Icon={PalmIcon} order={0} tone="#1f9d6b">
               St. Pete
             </Token>
-            .
           </p>
           <p>
-            I build{' '}
-            <Token Icon={ServerIcon} order={1} tone="#2f6bff">
-              reliable software
+            I started out building a{' '}
+            <Token Icon={TruckIcon} order={1} tone="#d98a1c">
+              delivery app
             </Token>{' '}
-            and work across{' '}
+            for an ice company on the Outer Banks, then spent a couple of years
+            at HCA moving{' '}
             <Token Icon={HeartIcon} order={2} tone="#e0445a">
-              healthcare
-            </Token>
-            ,{' '}
-            <Token Icon={TruckIcon} order={3} tone="#d98a1c">
-              logistics
-            </Token>
-            , and{' '}
-            <Token Icon={SparkleIcon} order={4} tone="#8a4fff">
+              patient records
+            </Token>{' '}
+            between their hospitals and outside health systems. Now I work on{' '}
+            <Token Icon={NodesIcon} order={3} tone="#8a4fff">
               AI
-            </Token>
-            .
-          </p>
-          <p>
-            Right now I’m at{' '}
+            </Token>{' '}
+            at{' '}
             <a
               className="token token-logo"
               href="https://firmpilot.com/"
               target="_blank"
               rel="noreferrer"
             >
-              <img src="/firmpilot_logo.jpg" alt="" width="16" height="16" />
+              <img src="/firmpilot_logo.webp" alt="" width="16" height="16" />
               FirmPilot
             </a>
-            , building the systems behind AI-powered marketing.
+          </p>
+          <p>
+            On the side I make tools I want to exist, like{' '}
+            <a
+              className="token token-logo"
+              href="https://revise.timmarkfeld.com/"
+              target="_blank"
+              rel="noreferrer"
+            >
+              <img src="/revise/icon.png" alt="" width="16" height="16" />
+              Revise
+            </a>
           </p>
         </section>
         <section className="column" id="experience" data-reveal>

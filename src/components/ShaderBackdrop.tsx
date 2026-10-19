@@ -15,7 +15,6 @@ uniform vec2 uSize;
 uniform float uTime;
 uniform vec2 uPointer;
 uniform float uHover;
-uniform float uDim;
 uniform vec3 uA;
 uniform vec3 uB;
 uniform vec3 uC;
@@ -62,7 +61,6 @@ void main() {
   vec3 color = mix(uA, uB, smoothstep(0.25, 0.75, f));
   color = mix(color, uC, smoothstep(0.35, 0.95, length(r) * 0.9));
   color += near * uHover * 0.08;
-  color *= mix(1.0, 0.62, uDim);
   color += (hash(gl_FragCoord.xy + fract(uTime) * 91.0) - 0.5) * 0.07;
   gl_FragColor = vec4(color, 1.0);
 }
@@ -75,10 +73,11 @@ const hex = (color: string): Rgb => {
 
 export function ShaderBackdrop({
   colors,
-  dim,
+  start,
 }: {
   colors: readonly [string, string, string];
-  dim: boolean;
+  // Where in the flow this panel begins, so each looks different but alike.
+  start: number;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [a, b, c] = colors;
@@ -116,8 +115,7 @@ export function ShaderBackdrop({
     gl.uniform3fv(u('uC'), hex(c));
 
     const still = matchMedia('(prefers-reduced-motion: reduce)');
-    // Each card starts at a different point in the flow.
-    let time = Math.random() * 100;
+    let time = start;
     let hover = 0;
     let hovering = false;
     let pointer = [0.5, 0.5];
@@ -130,7 +128,6 @@ export function ShaderBackdrop({
       gl!.uniform1f(u('uTime'), time);
       gl!.uniform2f(u('uPointer'), pointer[0], pointer[1]);
       gl!.uniform1f(u('uHover'), hover);
-      gl!.uniform1f(u('uDim'), dim ? 1 : 0);
       gl!.viewport(0, 0, canvas!.width, canvas!.height);
       gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
     }
@@ -185,7 +182,7 @@ export function ShaderBackdrop({
       host.removeEventListener('pointerleave', onLeave);
       still.removeEventListener('change', run);
     };
-  }, [a, b, c, dim]);
+  }, [a, b, c, start]);
 
   return (
     <canvas className="shader-backdrop" ref={canvasRef} aria-hidden="true" />
