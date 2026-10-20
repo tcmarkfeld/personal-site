@@ -38,6 +38,9 @@
         // JavaScript, or in an automated browser that never scrolls, they
         // simply show.
         if (!navigator.webdriver) document.documentElement.dataset.animate = '';
+        // Only Chromium can run an SVG filter on what's behind an element.
+        if (/Chrome\//.test(navigator.userAgent))
+          document.documentElement.dataset.glass = '';
         document.documentElement.style.colorScheme = theme;
         document
           .querySelector('meta[name="theme-color"]')

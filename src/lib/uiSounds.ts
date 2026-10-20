@@ -47,8 +47,8 @@ type Burst = {
   delay?: number;
 };
 
-// Filtered noise: a page brushing past, a drawer sliding, or (very short) the
-// tick of something catching.
+// Filtered noise: a page brushing past or, very short, the crisp edge of a
+// click.
 function burst(ctx: AudioContext, out: AudioNode, sound: Burst) {
   noise ??= (() => {
     const buffer = ctx.createBuffer(1, ctx.sampleRate * 0.3, ctx.sampleRate);
@@ -111,10 +111,26 @@ function tick(ctx: AudioContext, out: AudioNode, pitch: number) {
   });
 }
 
+// Three quick sine blips a fifth apart, each a little softer than the last.
+// They read as a bright, light pop rather than a tune.
+function blips(ctx: AudioContext, out: AudioNode, notes: number[]) {
+  notes.forEach((note, index) => {
+    tone(ctx, out, {
+      type: 'sine',
+      from: note,
+      to: note,
+      length: 0.06 + index * 0.005,
+      gain: 0.05 - index * 0.005,
+      attack: 0.002,
+      delay: index * 0.045,
+    });
+  });
+}
+
 // Each sound says whether it plays through the room's echo. The drawer
 // sounds stay dry and close, like something physical under your hand.
 const sounds: Record<
-  'open' | 'close' | 'navigate',
+  'open' | 'close' | 'lightsOn' | 'lightsOff' | 'navigate',
   {
     echo: boolean;
     volume: number;
@@ -124,6 +140,17 @@ const sounds: Record<
   // Drawers open and close with a dry key-press tick.
   open: { echo: false, volume: 1.4, play: (ctx, out) => tick(ctx, out, 240) },
   close: { echo: false, volume: 1.4, play: (ctx, out) => tick(ctx, out, 180) },
+  // Rising when the lights come on, falling when they go off (A, E, B).
+  lightsOn: {
+    echo: false,
+    volume: 1.4,
+    play: (ctx, out) => blips(ctx, out, [880, 1320, 1980]),
+  },
+  lightsOff: {
+    echo: false,
+    volume: 1.4,
+    play: (ctx, out) => blips(ctx, out, [1980, 1320, 880]),
+  },
   // A page brushing past.
   navigate: {
     echo: true,

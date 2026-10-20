@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { playSound } from '@/lib/uiSounds';
 
 function subscribe(onChange: () => void) {
   const observer = new MutationObserver(onChange);
@@ -19,6 +20,7 @@ export function useDarkTheme() {
 }
 
 export function setDarkTheme(dark: boolean) {
+  playSound(dark ? 'lightsOff' : 'lightsOn');
   const theme = dark ? 'dark' : 'light';
   const root = document.documentElement;
   root.dataset.theme = theme;

@@ -12,6 +12,25 @@ export function SiteHeader() {
 
   return (
     <header className="pill-nav">
+      {/* Bends the page behind the glass like rippled glass. Used by Chromium
+          browsers; others keep a frosted blur. */}
+      <svg className="pill-glass-filter" aria-hidden="true">
+        <filter id="liquid-glass" x="0" y="0" width="100%" height="100%">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.012 0.02"
+            numOctaves="2"
+            seed="4"
+          />
+          <feGaussianBlur stdDeviation="2" />
+          <feDisplacementMap
+            in="SourceGraphic"
+            scale="26"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+      </svg>
       <nav aria-label="Main navigation">
         <Link
           to={ROUTES.HOME}
