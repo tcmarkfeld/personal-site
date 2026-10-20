@@ -45,23 +45,21 @@ float fbm(vec2 p) {
 
 void main() {
   vec2 uv = gl_FragCoord.xy / uSize;
-  vec2 p = uv * vec2(uSize.x / uSize.y, 1.0) * 0.75;
   vec2 toPointer = uPointer - uv;
   float near = exp(-dot(toPointer, toPointer) * 6.0);
-  p += toPointer * near * uHover * 0.5;
 
-  float t = uTime * 0.045;
-  vec2 q = vec2(fbm(p + t), fbm(p + vec2(5.2, 1.3) - t));
-  vec2 r = vec2(
-    fbm(p + 1.8 * q + vec2(1.7, 9.2) + t * 1.3),
-    fbm(p + 1.8 * q + vec2(8.3, 2.8) - t)
-  );
-  float f = fbm(p + 1.6 * r);
+  // A broad sweep from one colour to the next that slowly turns, with a
+  // gentle wave through it so it isn't a flat ramp.
+  float t = uTime * 0.03;
+  float angle = 0.6 + t * 0.8;
+  vec2 c = (uv - 0.5) * vec2(uSize.x / uSize.y, 1.0);
+  float g = dot(c, vec2(cos(angle), sin(angle))) * 0.9 + 0.5;
+  g += (fbm(c * 1.1 + t) - 0.5) * 0.45;
+  g = clamp(g + near * uHover * 0.18, 0.0, 1.0);
+  vec3 color = g < 0.5
+    ? mix(uA, uB, smoothstep(0.0, 0.5, g))
+    : mix(uB, uC, smoothstep(0.5, 1.0, g));
 
-  vec3 color = mix(uA, uB, smoothstep(0.25, 0.75, f));
-  color = mix(color, uC, smoothstep(0.35, 0.95, length(r) * 0.9));
-  color += near * uHover * 0.08;
-  color += (hash(gl_FragCoord.xy + fract(uTime) * 91.0) - 0.5) * 0.07;
   gl_FragColor = vec4(color, 1.0);
 }
 `;
