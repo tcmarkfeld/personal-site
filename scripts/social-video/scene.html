@@ -1,6 +1,6 @@
 <!doctype html>
-<!-- The animated link preview: a halftone drop of ink blooming over
-     paper behind a glass name pill. render.mjs steps it frame by frame with
+<!-- The animated link preview: a card of slowly folding color behind a
+     glass name pill. render.mjs steps it frame by frame with
      window.frame(t), t in [0, 1); the motion loops seamlessly at t = 1. -->
 <html>
   <head>
@@ -103,7 +103,7 @@ vec2 orbit(float phase, float r) {
 
 // How much ink covers p (aspect-corrected, centered), where along its colors
 // it is, and where it falls in its folds. The field is warped twice over
-// (noise feeding noise), so the ink churns as it spreads.
+// (noise feeding noise), so the color churns as it folds.
 vec3 ink(vec2 p) {
   vec2 s = p * 0.9;
   vec2 q = vec2(
@@ -116,12 +116,9 @@ vec3 ink(vec2 p) {
   );
   float f = fbm(s + 2.0 * r);
 
-  // Ink drop: color blooms out from behind the pill toward the edges and
-  // draws back in. It starts at its fullest, so the poster frame is too.
+  // Full bleed: the whole card is ink, slowly folding.
   vec2 w = p + (r - 0.5) * 0.45;
-  float d = length(w * vec2(0.62, 1.0));
-  float reach = 0.16 + 0.42 * (0.5 + 0.5 * cos(uLoop * TAU));
-  float body = smoothstep(reach + 0.06, reach - 0.18, d + (f - 0.5) * 0.35);
+  float body = 1.0;
 
   float hue = f * 1.6 + q.x * 0.5 - r.y * 0.5 + w.x * 0.45;
   float fold = f * 9.0 + r.x * 5.0 - q.y * 3.0;
