@@ -297,7 +297,6 @@ export const Home = () => {
               dark={dark}
               effect={effect}
               weather={weather}
-              pending={sky === 'live' && weather === undefined}
             />
           </div>
           <p className="scene-caption">

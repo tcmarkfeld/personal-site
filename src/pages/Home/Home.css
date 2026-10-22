@@ -255,43 +255,6 @@
 .coastal-shade {
   display: none;
 }
-/* The paint-in cover: paper until the underpainting is drawn, then wiped away
-   by brush strokes. Only in a real browser session with motion allowed. */
-.coastal-paint {
-  display: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-  :root[data-animate] .coastal-paint {
-    position: absolute;
-    inset: 0;
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: var(--bg);
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-}
-.coastal-paint[data-state] {
-  background: none;
-}
-.coastal-paint[data-state='done'] {
-  opacity: 0;
-}
-/* The hotspots belong to the finished scene, so they wait for it. */
-.coastal-hotspots {
-  transition: opacity 0.4s ease;
-}
-.scene-frame:has(.coastal-paint[data-state='painting']) .coastal-hotspots {
-  opacity: 0;
-}
-@media (prefers-reduced-motion: no-preference) {
-  :root[data-animate]
-    .scene-frame:has(.coastal-paint:not([data-state]))
-    .coastal-hotspots {
-    opacity: 0;
-  }
-}
 .scene-caption {
   margin-top: 14px;
   color: var(--muted);

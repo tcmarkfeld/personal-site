@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Weather, WeatherEffect } from '@/lib/useStPeteWeather';
 
 const cloudPaths = [
@@ -7,257 +7,22 @@ const cloudPaths = [
   'M900 380c22-20 42-19 59-10 7-32 48-39 69-15 29-20 63-9 73 17 30-10 50 0 62 17H900Z',
 ];
 
-// The scene paints itself in once per page load, not on every return home.
-let paintedIn = false;
-
 type SceneProps = {
   dark: boolean;
   effect: WeatherEffect;
   weather: Weather | null | undefined;
-  // True while the live weather is still loading.
-  pending: boolean;
 };
 
-export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
+export function CoastalScene({ dark, effect, weather }: SceneProps) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frondRef = useRef<HTMLImageElement>(null);
   const hotspotsRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef(0);
-  const paintRef = useRef<HTMLCanvasElement>(null);
-  const [paintIn] = useState(() => !paintedIn);
-  const pendingRef = useRef(pending);
-
-  useEffect(() => {
-    pendingRef.current = pending;
-  }, [pending]);
-
-  // The scene paints itself in once per visit: brush strokes wipe away a
-  // washed-out underpainting while the weather loads, and the last of it holds
-  // until the weather is in, so the scene never changes once it's revealed.
-  useEffect(() => {
-    const paint = paintRef.current;
-    const scene = sceneRef.current;
-    const art = scene?.querySelector<HTMLImageElement>('.coastal-painting');
-    const ctx = paint?.getContext('2d');
-    if (!paint || !scene || !art || !ctx) return;
-    if (getComputedStyle(paint).display === 'none') return;
-    const ratio = Math.min(devicePixelRatio, 1.5);
-    const width = (paint.width = Math.round(scene.clientWidth * ratio));
-    const height = (paint.height = Math.round(scene.clientHeight * ratio));
-    const paper = getComputedStyle(scene).getPropertyValue('--bg').trim();
-    const begun = performance.now();
-    let frame = 0;
-    let underpainted = false;
-    let revealAt = 0;
-
-    function underpaint() {
-      // Drawn tiny and scaled up for a soft blur, then greyed and washed out.
-      const cover = Math.max(
-        width / art!.naturalWidth,
-        height / art!.naturalHeight,
-      );
-      const small = document.createElement('canvas');
-      small.width = Math.max(1, Math.round(width / 14));
-      small.height = Math.max(1, Math.round(height / 14));
-      const tiny = small.getContext('2d')!;
-      tiny.drawImage(
-        art!,
-        (small.width - (art!.naturalWidth * cover) / 14) / 2,
-        (small.height - (art!.naturalHeight * cover) / 14) / 2,
-        (art!.naturalWidth * cover) / 14,
-        (art!.naturalHeight * cover) / 14,
-      );
-      ctx!.imageSmoothingQuality = 'high';
-      ctx!.drawImage(small, 0, 0, width, height);
-      ctx!.globalCompositeOperation = 'saturation';
-      ctx!.fillStyle = '#808080';
-      ctx!.fillRect(0, 0, width, height);
-      ctx!.globalCompositeOperation = 'source-over';
-      ctx!.globalAlpha = 0.4;
-      ctx!.fillStyle = paper;
-      ctx!.fillRect(0, 0, width, height);
-      ctx!.globalAlpha = 1;
-      underpainted = true;
-    }
-
-    // A seeded random, so every visit is painted with the same strokes.
-    let seed = 7;
-    const random = () => {
-      seed = (seed * 16807) % 2147483647;
-      return seed / 2147483647;
-    };
-    const between = (low: number, high: number) =>
-      low + random() * (high - low);
-
-    // Broad rows blocking in the canvas, then a few long diagonal sweeps that
-    // pick up whatever the rows missed.
-    const rows = 7;
-    const brush = (height / rows) * 1.9;
-    type Stroke = {
-      start: number;
-      length: number;
-      from: [number, number];
-      to: [number, number];
-      bend: number;
-      phase: number;
-      size: number;
-      bristles: { offset: number; size: number; alpha: number; end: number }[];
-      drawn: number;
-      dabbed: boolean;
-    };
-    const stroke = (
-      start: number,
-      from: [number, number],
-      to: [number, number],
-      size: number,
-    ): Stroke => ({
-      start,
-      length: between(0.5, 0.7),
-      from,
-      to,
-      bend: between(-0.09, 0.09) * height,
-      phase: between(0, Math.PI * 2),
-      size,
-      // A solid core, then bristles across the brush's width that thin out
-      // toward its edges and each run out of paint at their own point, so the
-      // stroke trails off in dry streaks.
-      bristles: [
-        { offset: 0, size: 0.5, alpha: 1, end: 0.9 },
-        ...Array.from({ length: 16 }, () => {
-          const offset = between(-0.5, 0.5);
-          const edge = Math.abs(offset) * 2;
-          return {
-            offset,
-            size: between(0.05, 0.17) * (1 - edge * 0.5),
-            alpha: between(0.55, 1) * (1 - edge * 0.35),
-            end: between(0.72, 1) - edge * 0.12,
-          };
-        }),
-      ],
-      drawn: 0,
-      dabbed: false,
-    });
-    const strokes: Stroke[] = [
-      ...Array.from({ length: rows }, (_, row) => {
-        const y = ((row + 0.5) / rows) * height + between(-0.1, 0.1) * brush;
-        const tilt = between(-0.06, 0.06) * height;
-        // Each stroke lands well outside the frame, so its narrow start is
-        // mostly out of view, and lifts off just past the far edge.
-        const left = (reach: number): [number, number] => [
-          -brush * reach,
-          y - tilt,
-        ];
-        const right = (reach: number): [number, number] => [
-          width + brush * reach,
-          y + tilt,
-        ];
-        return stroke(
-          row * 0.075 + between(0, 0.05),
-          row % 2 ? right(1.3) : left(1.3),
-          row % 2 ? left(0.7) : right(0.7),
-          brush * between(0.95, 1.1),
-        );
-      }),
-      ...[0.15, 0.5, 0.85].map((at, n) =>
-        stroke(
-          0.45 + n * 0.1,
-          [width * (at - 0.35), -brush * 1.2],
-          [width * (at + 0.25), height + brush * 0.5],
-          brush * 1.25,
-        ),
-      ),
-    ];
-
-    const pointAt = (s: Stroke, u: number): [number, number] => [
-      s.from[0] + (s.to[0] - s.from[0]) * u,
-      s.from[1] +
-        (s.to[1] - s.from[1]) * u +
-        Math.sin(u * Math.PI) * s.bend +
-        Math.sin(u * 7 + s.phase) * s.size * 0.05,
-    ];
-    // The brush presses in, carries, then lifts: narrow at both ends.
-    const pressure = (u: number) => 0.4 + 0.6 * Math.sin(Math.PI * u) ** 0.45;
-    const STEP = 0.012;
-    // Plays the strokes faster than their authored timing; about 0.75s in all.
-    const SPEED = 1.8;
-
-    function wipe(elapsed: number) {
-      ctx!.globalCompositeOperation = 'destination-out';
-      ctx!.lineCap = 'round';
-      ctx!.fillStyle = '#000';
-      ctx!.strokeStyle = '#000';
-      let done = true;
-      strokes.forEach((s) => {
-        const raw = Math.min(1, Math.max(0, (elapsed - s.start) / s.length));
-        const t = 1 - (1 - raw) ** 3;
-        if (raw < 1) done = false;
-        for (let u0 = s.drawn; u0 < t; u0 += STEP) {
-          const u1 = Math.min(t, u0 + STEP);
-          const [x0, y0] = pointAt(s, u0);
-          const [x1, y1] = pointAt(s, u1);
-          const length = Math.hypot(x1 - x0, y1 - y0) || 1;
-          const nx = -(y1 - y0) / length;
-          const ny = (x1 - x0) / length;
-          const press = pressure((u0 + u1) / 2);
-          s.bristles.forEach((bristle) => {
-            if (u0 > bristle.end) return;
-            // Each bristle thins as it runs out of paint.
-            const left = Math.min(1, (bristle.end - u0) / 0.15);
-            const spread = bristle.offset * s.size * press;
-            ctx!.globalAlpha = bristle.alpha;
-            ctx!.lineWidth = Math.max(
-              1,
-              s.size * bristle.size * press * (0.35 + 0.65 * left),
-            );
-            ctx!.beginPath();
-            ctx!.moveTo(x0 + nx * spread, y0 + ny * spread);
-            ctx!.lineTo(x1 + nx * spread, y1 + ny * spread);
-            ctx!.stroke();
-          });
-        }
-        s.drawn = Math.max(s.drawn, t);
-        // A few flecks where the brush lifts off.
-        if (raw >= 1 && !s.dabbed) {
-          s.dabbed = true;
-          const [x, y] = pointAt(s, 1);
-          for (let n = 0; n < 6; n++) {
-            ctx!.globalAlpha = between(0.5, 0.9);
-            ctx!.beginPath();
-            ctx!.arc(
-              x + between(-0.6, 0.6) * s.size,
-              y + between(-0.6, 0.6) * s.size,
-              s.size * between(0.02, 0.07),
-              0,
-              Math.PI * 2,
-            );
-            ctx!.fill();
-          }
-        }
-      });
-      ctx!.globalAlpha = 1;
-      ctx!.globalCompositeOperation = 'source-over';
-      return done;
-    }
-
-    function tick(now: number) {
-      // Paint while the weather loads, so it only has to be in by the end.
-      if (!underpainted && art!.complete && art!.naturalWidth) {
-        underpaint();
-        revealAt = now;
-        paint!.dataset.state = 'painting';
-      }
-      const weatherIn = !pendingRef.current || now - begun > 3000;
-      if (revealAt && wipe(((now - revealAt) / 1000) * SPEED) && weatherIn) {
-        paint!.dataset.state = 'done';
-        paintedIn = true;
-        return;
-      }
-      frame = requestAnimationFrame(tick);
-    }
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, []);
+  // When the weather changes after the scene is up (the live weather arriving,
+  // say), it rolls in from this point in scene time instead of switching on.
+  const shownEffectRef = useRef(effect);
+  const fadeFromRef = useRef(-Infinity);
 
   // The frame leans toward the pointer while the painting inside drifts the
   // other way, so it reads as a window with depth behind it.
@@ -330,6 +95,10 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
     const palm = document.createElement('canvas');
     palm.width = 0;
     const wet = effect === 'rain' || effect === 'storm';
+    if (effect !== shownEffectRef.current) {
+      shownEffectRef.current = effect;
+      fadeFromRef.current = timeRef.current;
+    }
     let timer: number | undefined;
     let inView = false;
     let width = 0;
@@ -428,19 +197,18 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       ctx.scale(scale, scale);
       ctx.save();
       ctx.translate(Math.sin(time / 30) * 45, 0);
-      const heavy = effect !== 'clear';
+      // How far the current weather has rolled in, eased over a few seconds.
+      // A still scene never advances time, so it shows the weather outright.
+      const rolled = Math.min(1, (time - fadeFromRef.current) / 3);
+      const weatherIn = preference.matches
+        ? 1
+        : rolled * rolled * (3 - 2 * rolled);
+      const heavy = effect === 'clear' ? 0 : weatherIn;
+      const rain = wet ? weatherIn : 0;
       const gradient = ctx.createLinearGradient(0, 170, 0, 390);
-      gradient.addColorStop(
-        0,
-        dark
-          ? heavy
-            ? '#fffdf014'
-            : '#fffdf006'
-          : heavy
-            ? '#fffdf050'
-            : '#fffdf018',
-      );
-      gradient.addColorStop(1, '#fffdf000');
+      const cloud = (dark ? 6 + 14 * heavy : 24 + 56 * heavy) / 255;
+      gradient.addColorStop(0, `rgba(255, 253, 240, ${cloud})`);
+      gradient.addColorStop(1, 'rgba(255, 253, 240, 0)');
       ctx.fillStyle = gradient;
       clouds.forEach((path) => ctx.fill(path));
       ctx.restore();
@@ -454,7 +222,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
         const span = 12 + (y - 555) * 0.1;
         ctx.globalAlpha =
           Math.max(0, Math.sin(time / (1.5 + (i % 3)) + i)) *
-          (wet ? 0.08 : 0.2);
+          (0.2 - 0.12 * rain);
         ctx.beginPath();
         ctx.moveTo(x, y);
         ctx.quadraticCurveTo(x + span / 2, y - 1.5, x + span, y);
@@ -463,6 +231,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       ctx.globalAlpha = 1;
       if (effect === 'fog') {
         // Low banks of fog drifting across the horizon.
+        ctx.globalAlpha = weatherIn;
         for (let i = 0; i < 3; i++) {
           const drift = Math.sin(time / (18 + i * 6) + i) * 120;
           const top = 440 + i * 60;
@@ -474,6 +243,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
           ctx.fillStyle = band;
           ctx.fillRect(-200 + drift, top, 1936, 140);
         }
+        ctx.globalAlpha = 1;
       }
       if (dark) {
         // Lamplight in the observatory windows, flickering like it's lived in.
@@ -492,6 +262,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       const storm = effect === 'storm';
       const delta = Math.min(0.1, Math.max(0, time - lastTime));
       lastTime = time;
+      ctx.globalAlpha = rain;
       if (wet) {
         // Heavier cloud cover up high, thinning toward the water.
         const sky = ctx.createLinearGradient(0, 0, 0, height);
@@ -523,7 +294,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
           ctx.fillRect(0, 0, width, height);
           if (bolt && time - flashStart < 0.4) {
             ctx.save();
-            ctx.globalAlpha = Math.min(1, flash * 1.2);
+            ctx.globalAlpha = Math.min(1, flash * 1.2) * rain;
             ctx.strokeStyle = '#f4f7ff';
             ctx.shadowColor = '#bcd0ff';
             ctx.shadowBlur = 14;
@@ -534,6 +305,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
           }
         }
       }
+      ctx.globalAlpha = 1;
       ctx.save();
       // Cross the frame high in the sky and wrap only offscreen.
       const birdScale = 0.7;
@@ -546,13 +318,18 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       ctx.scale(birdScale, birdScale);
       ctx.strokeStyle = dark ? '#9eafa5' : '#355654';
       ctx.lineWidth = 2;
-      if (!wet) ctx.stroke(birds);
+      ctx.globalAlpha = 1 - rain;
+      ctx.stroke(birds);
       ctx.restore();
       if (palm.width) {
         ctx.save();
         ctx.translate(palmX + palmWidth, palmY + palmHeight * 0.15);
-        const gust = wet ? 2.2 : 1;
-        ctx.rotate((Math.sin(time / (4 / gust)) * 3 * gust * Math.PI) / 180);
+        // Blend toward the gusting sway rather than changing its pace, which
+        // would jump the frond.
+        const sway =
+          Math.sin(time / 4) * 3 * (1 - rain) +
+          Math.sin(time / (4 / 2.2)) * 6.6 * rain;
+        ctx.rotate((sway * Math.PI) / 180);
         ctx.globalAlpha = 0.5;
         ctx.drawImage(
           palm,
@@ -567,13 +344,20 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
         const wind =
           (storm ? 0.3 : 0.12) + Math.sin(time * 0.6) * (storm ? 0.1 : 0.04);
         const speedBoost = storm ? 1.3 : 1;
-        for (const drop of drops) {
+        // The rain thickens as it rolls in.
+        const falling = Math.round(drops.length * rain);
+        drops.forEach((drop, index) => {
           const speed = (320 + drop.z * 620) * speedBoost;
           drop.y += speed * delta;
           drop.x += speed * delta * wind;
           if (drop.y >= drop.land) {
             // Splash only on open water, left of the rocky point.
-            if (drop.z > 0.35 && drop.x < width * 0.6 && ripples.length < 70) {
+            if (
+              index < falling &&
+              drop.z > 0.35 &&
+              drop.x < width * 0.6 &&
+              ripples.length < 70
+            ) {
               ripples.push({
                 x: drop.x,
                 y: drop.land,
@@ -583,7 +367,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
             }
             Object.assign(drop, spawnDrop(-20 - Math.random() * 60));
           }
-        }
+        });
         // Batch drops into depth layers: far ones thin and faint, near ones
         // longer, brighter, and thicker.
         const color = dark ? '205, 218, 230' : '240, 245, 250';
@@ -591,7 +375,7 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
           ctx.beginPath();
           ctx.lineWidth = 0.6 + layer * 0.45;
           ctx.strokeStyle = `rgba(${color}, ${0.16 + layer * 0.14})`;
-          for (const drop of drops) {
+          for (const drop of drops.slice(0, falling)) {
             if (Math.min(2, Math.floor(drop.z * 3)) !== layer) continue;
             const length = (5 + drop.z * 16) * (storm ? 1.25 : 1);
             ctx.moveTo(drop.x, drop.y);
@@ -750,7 +534,6 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
         />
         <div className="coastal-shade" />
         <canvas className="coastal-motion" ref={canvasRef} />
-        {paintIn && <canvas className="coastal-paint" ref={paintRef} />}
       </div>
       <div className="coastal-hotspots" ref={hotspotsRef}>
         <button
