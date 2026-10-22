@@ -776,6 +776,10 @@
   /* Tall enough to tap when two links stack. */
   min-height: 24px;
 }
+/* Takes back the extra height so the links still line up with their label. */
+.project-info dd:has(> a) {
+  margin-block: -2.25px;
+}
 .project-info dd a:hover {
   color: var(--accent);
 }

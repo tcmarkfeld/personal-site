@@ -707,7 +707,15 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
     };
   }, [dark, effect]);
 
-  const painting = dark ? 'coastal-observatory-night' : 'coastal-observatory';
+  // The prerendered page can't know a stored theme, so it lets the system
+  // setting pick the night painting; once mounted, the theme decides.
+  const nightMedia =
+    typeof document === 'undefined'
+      ? '(prefers-color-scheme: dark)'
+      : dark
+        ? 'all'
+        : 'not all';
+  const sizes = 'min(580px, 100vw - 40px)';
 
   return (
     <>
@@ -717,14 +725,21 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
         aria-hidden="true"
         data-effect={effect}
       >
-        <img
-          className="coastal-painting"
-          src={`/${painting}.webp`}
-          srcSet={`/${painting}-1024.webp 1024w, /${painting}.webp 1536w`}
-          sizes="min(580px, 100vw - 40px)"
-          alt="Painting of a house on a rocky point over the water, framed by palm trees"
-          fetchPriority="high"
-        />
+        <picture>
+          <source
+            media={nightMedia}
+            srcSet="/coastal-observatory-night-1024.webp 1024w, /coastal-observatory-night.webp 1536w"
+            sizes={sizes}
+          />
+          <img
+            className="coastal-painting"
+            src="/coastal-observatory.webp"
+            srcSet="/coastal-observatory-1024.webp 1024w, /coastal-observatory.webp 1536w"
+            sizes={sizes}
+            alt="Painting of a house on a rocky point over the water, framed by palm trees"
+            fetchPriority="high"
+          />
+        </picture>
         <img
           className="coastal-frond"
           ref={frondRef}
