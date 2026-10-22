@@ -359,7 +359,7 @@ export const Home = () => {
               target="_blank"
               rel="noreferrer"
             >
-              <img src="/revise/icon.png" alt="" width="16" height="16" />
+              <img src="/revise/icon-64.webp" alt="" width="16" height="16" />
               Revise
             </a>
           </p>

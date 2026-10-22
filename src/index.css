@@ -1,16 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
-/* Only the letters of the words set in it: the name, project titles, the
-   footer sign-off and the 404 note. */
-@import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&text=%207%3FCDHIKLRTacdehilmnorstuvy&display=swap');
-
 @import 'tailwindcss';
 
 :root {
   color-scheme: light;
   --bg: #fbfbfb;
-  --text: #707070;
+  --text: #5e5e5e;
   --strong: #161616;
-  --muted: #a3a3a3;
+  --muted: #6e6e6e;
   --line: #0000000f;
   --card: #f1f1f1;
   --raised: #ffffff;

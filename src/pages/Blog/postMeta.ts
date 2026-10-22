@@ -19,7 +19,7 @@ export const postMeta: PostMeta[] = [
     slug: 'revise',
     title: 'Editing a PDF like it’s a doc',
     kicker: 'Revise · Project',
-    icon: '/revise/icon.png',
+    icon: '/revise/icon-64.webp',
     date: '2026-10-05',
     summary:
       'Why I built Revise, and how it turns a PDF back into something you can actually edit.',

@@ -707,6 +707,8 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
     };
   }, [dark, effect]);
 
+  const painting = dark ? 'coastal-observatory-night' : 'coastal-observatory';
+
   return (
     <>
       <div
@@ -717,11 +719,9 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
       >
         <img
           className="coastal-painting"
-          src={
-            dark
-              ? '/coastal-observatory-night.webp'
-              : '/coastal-observatory.webp'
-          }
+          src={`/${painting}.webp`}
+          srcSet={`/${painting}-1024.webp 1024w, /${painting}.webp 1536w`}
+          sizes="min(580px, 100vw - 40px)"
           alt="Painting of a house on a rocky point over the water, framed by palm trees"
           fetchPriority="high"
         />
@@ -729,6 +729,8 @@ export function CoastalScene({ dark, effect, weather, pending }: SceneProps) {
           className="coastal-frond"
           ref={frondRef}
           src="/coastal-frond.webp"
+          srcSet="/coastal-frond-480.webp 480w, /coastal-frond.webp 900w"
+          sizes="min(209px, 36vw - 14px)"
           alt=""
         />
         <div className="coastal-shade" />
