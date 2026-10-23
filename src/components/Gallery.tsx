@@ -2,7 +2,12 @@ import { Link } from '@tanstack/react-router';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import { lazy, Suspense, type ReactNode } from 'react';
 import { PhoneShot } from '@/components/PhoneShot';
-import { ShaderBackdrop } from '@/components/ShaderBackdrop';
+import {
+  type BackdropPattern,
+  ShaderBackdrop,
+} from '@/components/ShaderBackdrop';
+
+type Palette = [string, string, string, string, string];
 import { useDarkTheme } from '@/lib/theme';
 import { ROUTES } from '@/Navigation/routeEnum';
 
@@ -23,15 +28,42 @@ const ConductorFigure = lazy(() =>
   })),
 );
 
-// One palette for every panel, from the site itself: the sky-blue accent, a
-// pale blue-grey, and the ivory of the favicon. Dark mode gets its own cool
-// palette, since darkening the ivory turns it a muddy yellow.
-const PANEL_COLORS = {
-  light: ['#7fb9e6', '#d7e6f1', '#f3ede4'],
-  dark: ['#2f5677', '#18212b', '#2a3542'],
-} as const;
-// Starting points in the flow, picked so the panels look alike.
-const PANEL_STARTS = [12, 88, 50, 69];
+// Each panel's colours run light and cool at the top to darker and warm at the
+// bottom, using only neighbouring hues, with its own fine line pattern.
+const PANELS: {
+  pattern: BackdropPattern;
+  start: number;
+  light: Palette;
+  dark: Palette;
+}[] = [
+  {
+    // Lines of type.
+    pattern: 'waves',
+    start: 12,
+    light: ['#c8d0ea', '#b7aee0', '#dda7d2', '#ef9f86', '#f2b765'],
+    dark: ['#3a3f5e', '#43386a', '#5e3560', '#7a3b3c', '#6e4a22'],
+  },
+  {
+    pattern: 'contours',
+    start: 88,
+    light: ['#dbe5ea', '#b9d4d6', '#86bfb4', '#4f9799', '#2e6a7c'],
+    dark: ['#2c3a44', '#24494b', '#1e5552', '#174448', '#0f2c36'],
+  },
+  {
+    // Permissions fanning out from one config.
+    pattern: 'rays',
+    start: 50,
+    light: ['#cfd9e0', '#e6dcc4', '#f0bf86', '#e2875a', '#a9533c'],
+    dark: ['#2e3a44', '#4a4436', '#6a4a2c', '#6e3422', '#3e1a14'],
+  },
+  {
+    // A map grid.
+    pattern: 'dots',
+    start: 69,
+    light: ['#d9e7f1', '#b4d4e8', '#9ccfc6', '#b9d39c', '#7fae73'],
+    dark: ['#2a3a4a', '#22445a', '#1f4f4c', '#2f4a2c', '#1d3220'],
+  },
+];
 
 type Project = {
   title: string;
@@ -106,8 +138,9 @@ export function Gallery() {
           <figure className="project-panel">
             <div className="project-stage" role="img" aria-label={project.alt}>
               <ShaderBackdrop
-                colors={PANEL_COLORS[dark ? 'dark' : 'light']}
-                start={PANEL_STARTS[index]}
+                colors={PANELS[index][dark ? 'dark' : 'light']}
+                pattern={PANELS[index].pattern}
+                start={PANELS[index].start}
               />
               <Suspense>{project.stage}</Suspense>
             </div>
