@@ -667,16 +667,18 @@
 }
 /* Below the fold, these skip style, layout and paint until they near the
    screen, so the animations up top don't pay for the rest of the page on
-   every frame. The sizes hold their place until they've rendered once. */
+   every frame. The heights hold their place until they've rendered once;
+   only the height, since a placeholder width wider than a phone pushes the
+   column off centre. */
 .project,
 .writing,
 #activity,
 .currently {
   content-visibility: auto;
-  contain-intrinsic-size: auto 240px;
+  contain-intrinsic-block-size: auto 240px;
 }
 .project {
-  contain-intrinsic-size: auto 430px;
+  contain-intrinsic-block-size: auto 430px;
 }
 .project-panel {
   margin: 0;

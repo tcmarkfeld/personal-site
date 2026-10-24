@@ -8,6 +8,14 @@ const cloudPaths = [
   'M900 380c22-20 42-19 59-10 7-32 48-39 69-15 29-20 63-9 73 17 30-10 50 0 62 17H900Z',
 ];
 
+// A point on the painting (1536 × 1024) as a position in the frame. The frame
+// has the painting's 3:2 shape, so this holds at every size and the hotspots
+// sit in place from the first paint, without waiting on a measurement.
+const at = (x: number, y: number) => ({
+  left: `${(x / 1536) * 100}%`,
+  top: `${(y / 1024) * 100}%`,
+});
+
 type SceneProps = {
   dark: boolean;
   effect: WeatherEffect;
@@ -18,7 +26,6 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
   const sceneRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frondRef = useRef<HTMLImageElement>(null);
-  const hotspotsRef = useRef<HTMLDivElement>(null);
   const timeRef = useRef(0);
   // When the weather changes after the scene is up (the live weather arriving,
   // say), it rolls in from this point in scene time instead of switching on.
@@ -82,8 +89,7 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
     const scene = sceneRef.current;
     const canvas = canvasRef.current;
     const frond = frondRef.current;
-    const hotspots = hotspotsRef.current;
-    if (!scene || !canvas || !frond || !hotspots) return;
+    if (!scene || !canvas || !frond) return;
     // Keep a static scene on Gecko, where scene compositing stalls interaction.
     const gecko = CSS.supports('-moz-appearance', 'none');
     if (!gecko) scene.dataset.motionMode = 'scene';
@@ -422,17 +428,6 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
       if (scene.dataset.ready !== 'true') scene.dataset.ready = 'true';
     }
 
-    function placeHotspots() {
-      const { scale, x, y } = layout();
-      hotspots!.querySelectorAll<HTMLElement>('[data-x]').forEach((spot) => {
-        const left = x + Number(spot.dataset.x) * scale;
-        const top = y + Number(spot.dataset.y) * scale;
-        spot.style.left = `${left}px`;
-        spot.style.top = `${top}px`;
-        spot.hidden = left < 16 || left > width - 16 || top > height - 16;
-      });
-    }
-
     function resize() {
       if (!scene || !canvas || !frond) return;
       const bounds = scene.getBoundingClientRect();
@@ -443,7 +438,6 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
       ratio = Math.min(devicePixelRatio, 1.25, 1440 / width, 1080 / height);
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(height * ratio);
-      placeHotspots();
       const fit = layout();
       horizon = fit.y + 515 * fit.scale;
       if (wet) {
@@ -544,12 +538,11 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
         <div className="coastal-shade" />
         <canvas className="coastal-motion" ref={canvasRef} />
       </div>
-      <div className="coastal-hotspots" ref={hotspotsRef}>
+      <div className="coastal-hotspots">
         <button
           className="hotspot"
           type="button"
-          data-x="1272"
-          data-y="236"
+          style={at(1272, 236)}
           aria-describedby="hotspot-station"
         >
           <span className="sr-only">Weather station</span>
@@ -559,7 +552,7 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
               : 'Weather station offline. Ironic, I know.'}
           </span>
         </button>
-        <a className="hotspot" href="#hello" data-x="1300" data-y="440">
+        <a className="hotspot" href="#hello" style={at(1300, 440)}>
           <span className="hotspot-card">Come on in →</span>
           <span className="sr-only">About me</span>
         </a>
