@@ -12,7 +12,7 @@
 
 - FirmPilot, Senior Software Engineer (2025 to now): AI-powered marketing platforms, distributed AWS workers, secure GraphQL APIs, and automated content pipelines serving hundreds of client sites.
 - HCA Healthcare, Data Integration Engineer II (2023 to 2025): 200+ HIPAA-regulated microservices processing more than one million events a day; EHR integration through FHIR, HL7, and IHE.
-- Corolla Ice Delivery, Full Stack Engineer (2020 to 2023): a React Native delivery app on the App Store and Google Play, with route optimization that cut daily delivery time by up to 3 hours.
+- Corolla Ice Delivery, Full Stack Engineer (2020 to 2023): a React Native delivery app on the App Store and Google Play, with route optimization that cut daily delivery time by an average of 3 hours.
 
 ## Projects
 
@@ -23,4 +23,4 @@
 ## Writing
 
 - [Editing a PDF like it’s a doc](https://timmarkfeld.com/blog/revise/): why I built Revise, and how it turns a PDF back into something you can actually edit.
-- [Routing ice across the Outer Banks](https://timmarkfeld.com/blog/corolla-ice-delivery/): how I routed ice deliveries around Corolla to avoid left turns, and the up to three hours it saved a day.
+- [Routing ice across the Outer Banks](https://timmarkfeld.com/blog/corolla-ice-delivery/): how I routed ice deliveries around Corolla to avoid left turns, and the three hours it saved a day on average.

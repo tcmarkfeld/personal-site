@@ -59,10 +59,10 @@ const experience = [
     role: 'Full Stack Engineer',
     date: '2020 — 2023',
     description:
-      'Owned a React Native delivery app from design through App Store and Google Play that cut daily delivery time by up to 3 hours.',
+      'Owned a React Native delivery app from design through App Store and Google Play that cut daily delivery time by 3 hours on average.',
     detail:
       'Replaced manual scheduling with route optimization used in day-to-day operations during peak season. Built the supporting React site and Node/MySQL backend so drivers and ops ran on one stack end to end.',
-    metric: 'Up to 3 hrs saved a day',
+    metric: '3 hrs saved a day on average',
     href: 'https://corollaicedelivery.com/',
     post: ROUTES.COROLLA,
   },

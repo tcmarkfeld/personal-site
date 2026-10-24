@@ -6,7 +6,7 @@ const facts = [
   { label: 'When', value: 'May 2020 — Aug 2023' },
   { label: 'Stack', value: 'React Native, React, Node.js, MySQL' },
   { label: 'Shipped to', value: 'App Store and Google Play' },
-  { label: 'Result', value: 'Up to 3 hours cut from a delivery day' },
+  { label: 'Result', value: '3 hours cut from a delivery day on average' },
 ];
 
 const screens = [
