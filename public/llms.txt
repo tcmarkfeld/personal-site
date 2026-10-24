@@ -1,6 +1,6 @@
 # Timothy Markfeld
 
-> Senior software engineer in St. Petersburg, Florida. I build reliable software and work across healthcare, logistics, and AI. Currently at FirmPilot, building the systems behind AI-powered marketing.
+> Senior software engineer in St. Petersburg, Florida. I started out building a delivery app for an ice company on the Outer Banks, then spent a couple of years at HCA moving patient records between their hospitals and outside health systems. Now I work on AI at FirmPilot. On the side I make tools I want to exist.
 
 - Site: https://timmarkfeld.com/
 - Email: mail@timmarkfeld.com

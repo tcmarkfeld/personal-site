@@ -2,7 +2,7 @@
 // first frame as the poster (og:image). Needs Google Chrome and ffmpeg.
 // Run: node scripts/social-video/render.mjs
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -11,7 +11,7 @@ import puppeteer from 'puppeteer-core';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(HERE, '../../public');
 const FPS = 30;
-const SECONDS = 8;
+const SECONDS = 10;
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 
 const frames = mkdtempSync(join(tmpdir(), 'social-video-'));
@@ -26,7 +26,7 @@ try {
   await page.goto(pathToFileURL(join(HERE, 'scene.html')).href, {
     waitUntil: 'networkidle0',
   });
-  await page.evaluate(() => document.fonts.ready);
+  await page.evaluate(() => Promise.all([window.ready, document.fonts.ready]));
 
   const count = FPS * SECONDS;
   for (let i = 0; i < count; i++) {
@@ -38,7 +38,18 @@ try {
   await browser.close();
 }
 
-copyFileSync(join(frames, '0000.png'), join(PUBLIC, 'social-preview.png'));
+// The poster is a JPEG: a painting compresses far better that way than as a
+// PNG, and link previews load it before the video.
+execFileSync('ffmpeg', [
+  '-y',
+  '-loglevel',
+  'error',
+  '-i',
+  join(frames, '0000.png'),
+  '-q:v',
+  '3',
+  join(PUBLIC, 'social-preview.jpg'),
+]);
 // Plain H.264 in yuv420p so iMessage and other unfurlers can play it inline;
 // faststart puts the index first so playback starts early.
 execFileSync('ffmpeg', [
