@@ -28,8 +28,10 @@ const ConductorFigure = lazy(() =>
   })),
 );
 
-// Each panel's colours run light and cool at the top to darker and warm at the
-// bottom, using only neighbouring hues, with its own fine line pattern.
+// One family of colours for every panel, from the site itself: the sky-blue
+// accent, a pale blue-grey, and the warm ivory of the favicon, light and cool
+// at the top running to deeper and warmer at the bottom. Each panel leans a
+// different way within it, bluer or warmer, and has its own fine line pattern.
 const PANELS: {
   pattern: BackdropPattern;
   start: number;
@@ -40,28 +42,28 @@ const PANELS: {
     // Lines of type.
     pattern: 'waves',
     start: 12,
-    light: ['#c8d0ea', '#b7aee0', '#dda7d2', '#ef9f86', '#f2b765'],
-    dark: ['#3a3f5e', '#43386a', '#5e3560', '#7a3b3c', '#6e4a22'],
+    light: ['#dfe6ee', '#bcd5ec', '#93c1e8', '#e6d9c6', '#eec39a'],
+    dark: ['#2a3746', '#244260', '#1d3b58', '#2b3542', '#38322d'],
   },
   {
     pattern: 'contours',
     start: 88,
-    light: ['#dbe5ea', '#b9d4d6', '#86bfb4', '#4f9799', '#2e6a7c'],
-    dark: ['#2c3a44', '#24494b', '#1e5552', '#174448', '#0f2c36'],
+    light: ['#e4eaef', '#c9ddee', '#a3c9ea', '#7eb2e0', '#e3d3bf'],
+    dark: ['#2b3846', '#26486b', '#1f3e5e', '#1a314b', '#2e2c2c'],
   },
   {
     // Permissions fanning out from one config.
     pattern: 'rays',
     start: 50,
-    light: ['#cfd9e0', '#e6dcc4', '#f0bf86', '#e2875a', '#a9533c'],
-    dark: ['#2e3a44', '#4a4436', '#6a4a2c', '#6e3422', '#3e1a14'],
+    light: ['#e5e9ed', '#d3e1ee', '#eadfcf', '#eecda6', '#e0aa7b'],
+    dark: ['#2c3743', '#283a4e', '#30363f', '#3a3532', '#2f2824'],
   },
   {
     // A map grid.
     pattern: 'dots',
     start: 69,
-    light: ['#d9e7f1', '#b4d4e8', '#9ccfc6', '#b9d39c', '#7fae73'],
-    dark: ['#2a3a4a', '#22445a', '#1f4f4c', '#2f4a2c', '#1d3220'],
+    light: ['#dce8f2', '#b4d4ee', '#90c0ea', '#c4d8e8', '#ece0cf'],
+    dark: ['#283949', '#22496f', '#1e4262', '#233547', '#33302f'],
   },
 ];
 

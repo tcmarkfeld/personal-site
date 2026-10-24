@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { animateInView } from '@/lib/frameLoop';
 import type { Weather, WeatherEffect } from '@/lib/useStPeteWeather';
 
 const cloudPaths = [
@@ -99,8 +100,6 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
       shownEffectRef.current = effect;
       fadeFromRef.current = timeRef.current;
     }
-    let timer: number | undefined;
-    let inView = false;
     let width = 0;
     let height = 0;
     let ratio = 1;
@@ -120,14 +119,37 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
     let flashStart = -10;
     let bolt: Path2D | null = null;
 
-    function spawnDrop(y: number): Drop {
-      const z = Math.random() ** 1.6;
-      return {
-        x: Math.random() * (width + 120) - 60,
-        y,
-        z,
-        land: horizon + (height - horizon) * (0.1 + z * 0.9),
-      };
+    // Gradients are built once rather than every frame. The cloud, fog and
+    // lamp ones live in the painting's own coordinates, so they never change;
+    // the sky and haze follow the frame's size and are rebuilt on resize.
+    function linear(y0: number, y1: number, stops: [number, string][]) {
+      const gradient = ctx!.createLinearGradient(0, y0, 0, y1);
+      stops.forEach(([at, color]) => gradient.addColorStop(at, color));
+      return gradient;
+    }
+    const storm = effect === 'storm';
+    const fogColor = dark ? '#8d9dab' : '#f1efe8';
+    const fogBands = [0, 1, 2].map((i) =>
+      linear(440 + i * 60, 580 + i * 60, [
+        [0, `${fogColor}00`],
+        [0.5, `${fogColor}${dark ? '38' : '70'}`],
+        [1, `${fogColor}00`],
+      ]),
+    );
+    const lamp = ctx.createRadialGradient(1285, 432, 0, 1285, 432, 150);
+    lamp.addColorStop(0, '#ffb25c');
+    lamp.addColorStop(1, '#ffb25c00');
+    let cloudAlpha = -1;
+    let cloudFill: CanvasGradient | undefined;
+    let sky: CanvasGradient | undefined;
+    let haze: CanvasGradient | undefined;
+
+    // Drops are reused: one that lands starts again above the frame.
+    function place(drop: Drop, y: number) {
+      drop.z = Math.random() ** 1.6;
+      drop.x = Math.random() * (width + 120) - 60;
+      drop.y = y;
+      drop.land = horizon + (height - horizon) * (0.1 + drop.z * 0.9);
     }
 
     function seedDrops() {
@@ -137,7 +159,9 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
       const density = effect === 'storm' ? 0.0013 : 0.0007;
       const count = Math.round(width * height * density);
       for (let i = 0; i < count; i++) {
-        drops.push(spawnDrop(Math.random() * height));
+        const drop = { x: 0, y: 0, z: 0, land: 0 };
+        place(drop, Math.random() * height);
+        drops.push(drop);
       }
     }
 
@@ -205,11 +229,16 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
         : rolled * rolled * (3 - 2 * rolled);
       const heavy = effect === 'clear' ? 0 : weatherIn;
       const rain = wet ? weatherIn : 0;
-      const gradient = ctx.createLinearGradient(0, 170, 0, 390);
+      // Only changes while the weather rolls in.
       const cloud = (dark ? 6 + 14 * heavy : 24 + 56 * heavy) / 255;
-      gradient.addColorStop(0, `rgba(255, 253, 240, ${cloud})`);
-      gradient.addColorStop(1, 'rgba(255, 253, 240, 0)');
-      ctx.fillStyle = gradient;
+      if (cloud !== cloudAlpha) {
+        cloudAlpha = cloud;
+        cloudFill = linear(170, 390, [
+          [0, `rgba(255, 253, 240, ${cloud})`],
+          [1, 'rgba(255, 253, 240, 0)'],
+        ]);
+      }
+      ctx.fillStyle = cloudFill!;
       clouds.forEach((path) => ctx.fill(path));
       ctx.restore();
       ctx.lineWidth = 1.5;
@@ -234,49 +263,31 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
         ctx.globalAlpha = weatherIn;
         for (let i = 0; i < 3; i++) {
           const drift = Math.sin(time / (18 + i * 6) + i) * 120;
-          const top = 440 + i * 60;
-          const band = ctx.createLinearGradient(0, top, 0, top + 140);
-          const color = dark ? '#8d9dab' : '#f1efe8';
-          band.addColorStop(0, `${color}00`);
-          band.addColorStop(0.5, `${color}${dark ? '38' : '70'}`);
-          band.addColorStop(1, `${color}00`);
-          ctx.fillStyle = band;
-          ctx.fillRect(-200 + drift, top, 1936, 140);
+          ctx.fillStyle = fogBands[i];
+          ctx.fillRect(-200 + drift, 440 + i * 60, 1936, 140);
         }
         ctx.globalAlpha = 1;
       }
       if (dark) {
         // Lamplight in the observatory windows, flickering like it's lived in.
-        const glow = ctx.createRadialGradient(1285, 432, 0, 1285, 432, 150);
-        glow.addColorStop(0, '#ffb25c');
-        glow.addColorStop(1, '#ffb25c00');
         ctx.globalCompositeOperation = 'screen';
         ctx.globalAlpha =
           0.16 + Math.sin(time * 1.3) * 0.04 + Math.sin(time * 3.7) * 0.02;
-        ctx.fillStyle = glow;
+        ctx.fillStyle = lamp;
         ctx.fillRect(1135, 282, 300, 300);
         ctx.globalCompositeOperation = 'source-over';
         ctx.globalAlpha = 1;
       }
       ctx.restore();
-      const storm = effect === 'storm';
       const delta = Math.min(0.1, Math.max(0, time - lastTime));
       lastTime = time;
       ctx.globalAlpha = rain;
       if (wet) {
         // Heavier cloud cover up high, thinning toward the water.
-        const sky = ctx.createLinearGradient(0, 0, 0, height);
-        sky.addColorStop(0, storm ? '#0a1220d0' : '#1a2633a0');
-        sky.addColorStop(0.5, storm ? '#0a122080' : '#1a263350');
-        sky.addColorStop(1, storm ? '#0a122050' : '#1a263320');
-        ctx.fillStyle = sky;
+        ctx.fillStyle = sky!;
         ctx.fillRect(0, 0, width, height);
         // Rain haze sitting on the horizon.
-        const haze = ctx.createLinearGradient(0, horizon - 50, 0, horizon + 40);
-        haze.addColorStop(0, '#b8c4ce00');
-        haze.addColorStop(0.55, storm ? '#8f9eab55' : '#c3ccd455');
-        haze.addColorStop(1, '#b8c4ce00');
-        ctx.fillStyle = haze;
+        ctx.fillStyle = haze!;
         ctx.fillRect(0, horizon - 50, width, 90);
       }
       if (storm) {
@@ -346,7 +357,8 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
         const speedBoost = storm ? 1.3 : 1;
         // The rain thickens as it rolls in.
         const falling = Math.round(drops.length * rain);
-        drops.forEach((drop, index) => {
+        for (let index = 0; index < drops.length; index++) {
+          const drop = drops[index];
           const speed = (320 + drop.z * 620) * speedBoost;
           drop.y += speed * delta;
           drop.x += speed * delta * wind;
@@ -365,9 +377,9 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
                 size: 3 + drop.z * 7,
               });
             }
-            Object.assign(drop, spawnDrop(-20 - Math.random() * 60));
+            place(drop, -20 - Math.random() * 60);
           }
-        });
+        }
         // Batch drops into depth layers: far ones thin and faint, near ones
         // longer, brighter, and thicker.
         const color = dark ? '205, 218, 230' : '240, 245, 250';
@@ -375,7 +387,8 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
           ctx.beginPath();
           ctx.lineWidth = 0.6 + layer * 0.45;
           ctx.strokeStyle = `rgba(${color}, ${0.16 + layer * 0.14})`;
-          for (const drop of drops.slice(0, falling)) {
+          for (let index = 0; index < falling; index++) {
+            const drop = drops[index];
             if (Math.min(2, Math.floor(drop.z * 3)) !== layer) continue;
             const length = (5 + drop.z * 16) * (storm ? 1.25 : 1);
             ctx.moveTo(drop.x, drop.y);
@@ -409,22 +422,6 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
       if (scene.dataset.ready !== 'true') scene.dataset.ready = 'true';
     }
 
-    function tick() {
-      timeRef.current += 1 / 24;
-      paint();
-      timer = window.setTimeout(tick, Math.ceil(1000 / 24));
-    }
-
-    function updateMotion() {
-      window.clearTimeout(timer);
-      const active =
-        inView && !gecko && !document.hidden && !preference.matches;
-      scene!.dataset.active = String(active);
-      if (!active) return;
-      // A timer avoids waking on every 60/120 Hz display frame.
-      timer = window.setTimeout(tick, Math.ceil(1000 / 24));
-    }
-
     function placeHotspots() {
       const { scale, x, y } = layout();
       hotspots!.querySelectorAll<HTMLElement>('[data-x]').forEach((spot) => {
@@ -449,6 +446,18 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
       placeHotspots();
       const fit = layout();
       horizon = fit.y + 515 * fit.scale;
+      if (wet) {
+        sky = linear(0, height, [
+          [0, storm ? '#0a1220d0' : '#1a2633a0'],
+          [0.5, storm ? '#0a122080' : '#1a263350'],
+          [1, storm ? '#0a122050' : '#1a263320'],
+        ]);
+        haze = linear(horizon - 50, horizon + 40, [
+          [0, '#b8c4ce00'],
+          [0.55, storm ? '#8f9eab55' : '#c3ccd455'],
+          [1, '#b8c4ce00'],
+        ]);
+      }
       seedDrops();
       if (gecko) return;
       if (frond.naturalWidth) {
@@ -470,24 +479,24 @@ export function CoastalScene({ dark, effect, weather }: SceneProps) {
       paint();
     }
 
-    const observer = new IntersectionObserver(([entry]) => {
-      inView = entry.isIntersecting;
-      updateMotion();
-    });
     const resizeObserver = new ResizeObserver(resize);
-    observer.observe(scene);
     resizeObserver.observe(scene);
     frond.addEventListener('load', resize);
-    document.addEventListener('visibilitychange', updateMotion);
-    preference.addEventListener('change', updateMotion);
     resize();
+    const stop = gecko
+      ? undefined
+      : animateInView(
+          scene,
+          (seconds) => {
+            timeRef.current += seconds;
+            paint();
+          },
+          paint,
+        );
     return () => {
-      window.clearTimeout(timer);
-      observer.disconnect();
+      stop?.();
       resizeObserver.disconnect();
       frond.removeEventListener('load', resize);
-      document.removeEventListener('visibilitychange', updateMotion);
-      preference.removeEventListener('change', updateMotion);
     };
   }, [dark, effect]);
 

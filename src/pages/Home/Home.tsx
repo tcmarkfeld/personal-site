@@ -219,6 +219,19 @@ function WeatherReadout({ text }: { text: string | undefined }) {
   );
 }
 
+// Its own component, so the clock ticking over doesn't re-render the page.
+function LocalTime() {
+  const [time, setTime] = useState(() => stPeteTime.format(new Date()));
+  useEffect(() => {
+    const timer = window.setInterval(
+      () => setTime(stPeteTime.format(new Date())),
+      30_000,
+    );
+    return () => window.clearInterval(timer);
+  }, []);
+  return <time>{time}</time>;
+}
+
 function Token({
   children,
   Icon,
@@ -247,9 +260,6 @@ export const Home = () => {
   const dark = useDarkTheme();
   const { sky } = useSiteState();
   const weather = useStPeteWeather();
-  const [localTime, setLocalTime] = useState(() =>
-    stPeteTime.format(new Date()),
-  );
   const effect = sky === 'live' ? (weather?.effect ?? 'clear') : sky;
   useReveal(pageRef);
 
@@ -270,14 +280,6 @@ export const Home = () => {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    const timer = window.setInterval(
-      () => setLocalTime(stPeteTime.format(new Date())),
-      30_000,
-    );
-    return () => window.clearInterval(timer);
-  }, []);
-
   return (
     <div
       className="site"
@@ -293,14 +295,10 @@ export const Home = () => {
       <main id="main">
         <section className="hero" aria-label="St. Petersburg, Florida">
           <div className="scene-frame">
-            <CoastalScene
-              dark={dark}
-              effect={effect}
-              weather={weather}
-            />
+            <CoastalScene dark={dark} effect={effect} weather={weather} />
           </div>
           <p className="scene-caption">
-            St. Petersburg, FL · <time>{localTime}</time> ·{' '}
+            St. Petersburg, FL · <LocalTime /> ·{' '}
             <WeatherReadout
               text={
                 sky !== 'live'

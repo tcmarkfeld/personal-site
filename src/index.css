@@ -1,5 +1,44 @@
 @import 'tailwindcss';
 
+/* Served from the site rather than Google Fonts, so text doesn't wait on a
+   second and third server. Inter and Geist Mono are variable, one file for
+   every weight used, in the Latin subset Google serves. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/inter-latin-v20.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('/fonts/geist-mono-latin-v6.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC,
+    U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212,
+    U+2215, U+FEFF, U+FFFD;
+}
+/* Only the letters of the words set in it: the name, project titles, the
+   footer sign-off and the 404 note. A new word needs a new subset, from
+   fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@1,6..96,400&text=… */
+@font-face {
+  font-family: 'Bodoni Moda';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/bodoni-moda-italic-subset-v28.woff2') format('woff2');
+  unicode-range:
+    U+20, U+37, U+3f, U+43-44, U+48-49, U+4b-4c, U+52, U+54, U+61, U+63-65,
+    U+68-69, U+6c-6f, U+72-76, U+79;
+}
+
 :root {
   color-scheme: light;
   --bg: #fbfbfb;

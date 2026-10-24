@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { animateInView } from '@/lib/frameLoop';
 
 type Rgb = readonly [number, number, number];
 
@@ -125,7 +126,15 @@ export function ShaderBackdrop({
   useEffect(() => {
     const canvas = canvasRef.current;
     const host = canvas?.parentElement;
-    const gl = canvas?.getContext('webgl', { antialias: false });
+    // Opaque, with no depth, stencil or multisampling: the panel is one quad,
+    // and an opaque canvas is cheaper for the compositor to blend.
+    const gl = canvas?.getContext('webgl', {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: 'low-power',
+    });
     if (!canvas || !host || !gl) return;
     gl.getExtension('OES_standard_derivatives');
 
@@ -155,75 +164,65 @@ export function ShaderBackdrop({
       .split(',')
       .forEach((color, i) => gl.uniform3fv(u(`uC${i}`), hex(color)));
     gl.uniform1f(u('uPattern'), PATTERNS.indexOf(pattern));
+    const uSize = u('uSize');
+    const uTime = u('uTime');
+    const uPointer = u('uPointer');
+    const uHover = u('uHover');
 
-    const still = matchMedia('(prefers-reduced-motion: reduce)');
     let time = start;
     let hover = 0;
     let hovering = false;
-    let pointer = [0.5, 0.5];
-    let visible = false;
-    let frame = 0;
-    let last = 0;
+    // The pointer in client coordinates, turned into panel coordinates once a
+    // frame rather than measuring the panel on every pointer move.
+    let clientX = 0;
+    let clientY = 0;
 
     function draw() {
-      gl!.uniform2f(u('uSize'), canvas!.width, canvas!.height);
-      gl!.uniform1f(u('uTime'), time);
-      gl!.uniform2f(u('uPointer'), pointer[0], pointer[1]);
-      gl!.uniform1f(u('uHover'), hover);
-      gl!.viewport(0, 0, canvas!.width, canvas!.height);
+      gl!.uniform1f(uTime, time);
+      gl!.uniform1f(uHover, hover);
       gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
     }
-    function tick(now: number) {
-      const delta = last ? Math.min((now - last) / 1000, 0.1) : 0;
-      last = now;
-      time += delta * (1 + hover * 0.6);
-      hover += ((hovering ? 1 : 0) - hover) * Math.min(1, delta * 4);
+    function step(seconds: number) {
+      time += seconds * (1 + hover * 0.6);
+      hover += ((hovering ? 1 : 0) - hover) * Math.min(1, seconds * 4);
+      if (hover > 0.001) {
+        const box = host!.getBoundingClientRect();
+        gl!.uniform2f(
+          uPointer,
+          (clientX - box.left) / box.width,
+          1 - (clientY - box.top) / box.height,
+        );
+      }
       draw();
-      frame = requestAnimationFrame(tick);
-    }
-    function run() {
-      cancelAnimationFrame(frame);
-      frame = 0;
-      last = 0;
-      if (visible && !still.matches) frame = requestAnimationFrame(tick);
-      else draw();
     }
     function resize() {
       // Full resolution, so the grain stays a single pixel.
       const ratio = Math.min(devicePixelRatio, 2);
       canvas!.width = Math.max(1, Math.round(host!.clientWidth * ratio));
       canvas!.height = Math.max(1, Math.round(host!.clientHeight * ratio));
+      gl!.viewport(0, 0, canvas!.width, canvas!.height);
+      gl!.uniform2f(uSize, canvas!.width, canvas!.height);
       draw();
     }
     const onMove = (event: PointerEvent) => {
-      const box = host.getBoundingClientRect();
-      pointer = [
-        (event.clientX - box.left) / box.width,
-        1 - (event.clientY - box.top) / box.height,
-      ];
+      clientX = event.clientX;
+      clientY = event.clientY;
       hovering = true;
     };
     const onLeave = () => {
       hovering = false;
     };
 
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-      run();
-    });
     const resizeObserver = new ResizeObserver(resize);
-    observer.observe(host);
     resizeObserver.observe(host);
     host.addEventListener('pointermove', onMove);
     host.addEventListener('pointerleave', onLeave);
-    still.addEventListener('change', run);
+    const stop = animateInView(host, step, draw);
     return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
+      stop();
       resizeObserver.disconnect();
       host.removeEventListener('pointermove', onMove);
       host.removeEventListener('pointerleave', onLeave);
-      still.removeEventListener('change', run);
     };
   }, [key, pattern, start]);
 

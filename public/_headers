@@ -1,0 +1,13 @@
+# Built files carry a content hash in their names and fonts a version, so a
+# changed file is always a new URL: browsers can keep these forever.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Images keep their names when they change, so they're fresh for a day, then
+# served from cache while the browser checks for a new one in the background.
+/*.webp
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/*.png
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800

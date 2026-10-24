@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useDarkTheme } from '@/lib/theme';
 import { data, svg } from './hl7kit.gen';
 import '@/lib/anatomy/iso.css';
+import { setAttr, setOpacity } from '@/lib/anatomy/write';
+import { animateInView } from '@/lib/frameLoop';
 
 // Timeline, in seconds: one field every STEP, each in the air for FLY.
 const FIRST = 0.6;
@@ -38,7 +40,6 @@ export function Hl7KitFigure() {
     root.innerHTML = svg;
     const stage = root.firstElementChild as SVGSVGElement;
     const chips = [...root.querySelectorAll<SVGGElement>('[data-chip]')];
-    const still = matchMedia('(prefers-reduced-motion: reduce)');
 
     function draw(t: number) {
       const [liftX, liftY] = data.lift;
@@ -47,44 +48,22 @@ export function Hl7KitFigure() {
         const [toX, toY] = data.chips[i];
         const x = toX * u + liftX * arc;
         const y = toY * u + liftY * arc;
-        el.setAttribute(
-          'transform',
-          `translate(${x.toFixed(2)} ${y.toFixed(2)})`,
-        );
+        setAttr(el, 'transform', `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
         el.firstElementChild!.toggleAttribute('data-lit', u > 0 && u < 1);
-        el.style.opacity = opacity < 1 ? String(opacity) : '';
+        setOpacity(el, opacity < 1 ? String(opacity) : '');
       });
     }
 
-    let clock = still.matches ? STILL : 0;
-    let frame = 0;
-    let last = 0;
-    let visible = false;
-
-    function tick(now: number) {
-      const dt = last ? Math.min((now - last) / 1000, 1 / 20) : 0;
-      last = now;
-      clock = (clock + dt) % LOOP;
-      draw(clock);
-      frame = visible && !still.matches ? requestAnimationFrame(tick) : 0;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        visible = entries[entries.length - 1].isIntersecting;
-        if (!frame && visible && !still.matches) {
-          last = 0;
-          frame = requestAnimationFrame(tick);
-        }
-      },
-      { rootMargin: '120px 0px' },
-    );
-    observer.observe(stage);
+    let clock = 0;
     draw(clock);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
+    return animateInView(
+      stage,
+      (seconds) => {
+        clock = (clock + seconds) % LOOP;
+        draw(clock);
+      },
+      () => draw(STILL),
+    );
   }, []);
 
   return (

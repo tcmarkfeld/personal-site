@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useDarkTheme } from '@/lib/theme';
 import { data, svg } from './revise.gen';
 import '@/lib/anatomy/iso.css';
+import { setAttr, setOpacity } from '@/lib/anatomy/write';
+import { animateInView } from '@/lib/frameLoop';
 
 const clamp01 = (t: number) => Math.min(1, Math.max(0, t));
 const ease = (t: number) => t * t * (3 - 2 * t);
@@ -43,18 +45,17 @@ export function ReviseFigure() {
     const words = data.words.map(
       ({ id }) => root.querySelector<SVGPathElement>(`[data-word="${id}"]`)!,
     );
-    const still = matchMedia('(prefers-reduced-motion: reduce)');
 
     function draw(t: number) {
       const c = typedAt(t);
       // The caret sits in the space after the typed characters.
       const [dx, dy] = screen(c * data.ch + Math.min(c, 1) * 1.4, 0);
-      caret.setAttribute('transform', `translate(${dx} ${dy})`);
+      setAttr(caret, 'transform', `translate(${dx} ${dy})`);
       const busy = c > 0 && c < data.typed;
-      caret.style.opacity = busy || Math.floor(t * 2) % 2 === 0 ? '' : '0';
+      setOpacity(caret, busy || Math.floor(t * 2) % 2 === 0 ? '' : '0');
       const [sx, sy] = data.start;
       const [ex, ey] = screen(Math.max(0, c * data.ch - 0.6), 0);
-      typed.setAttribute('d', c > 0.4 ? `M${sx} ${sy}l${ex} ${ey}` : '');
+      setAttr(typed, 'd', c > 0.4 ? `M${sx} ${sy}l${ex} ${ey}` : '');
 
       // Between two characters each word eases along its line; a word that
       // wraps fades out at the end of one line and in at the start of the next.
@@ -69,43 +70,21 @@ export function ReviseFigure() {
             : b
           : [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f];
         const [wx, wy] = screen(x, y);
-        words[n].setAttribute('transform', `translate(${wx} ${wy})`);
-        words[n].style.opacity = wraps ? Math.abs(1 - 2 * f).toFixed(2) : '';
+        setAttr(words[n], 'transform', `translate(${wx} ${wy})`);
+        setOpacity(words[n], wraps ? Math.abs(1 - 2 * f).toFixed(2) : '');
       });
     }
 
-    let clock = still.matches ? STILL : 0;
-    let frame = 0;
-    let last = 0;
-    let visible = false;
-
-    function tick(now: number) {
-      const dt = last ? Math.min((now - last) / 1000, 1 / 20) : 0;
-      last = now;
-      clock = (clock + dt) % LOOP;
-      draw(clock);
-      frame = visible && !still.matches ? requestAnimationFrame(tick) : 0;
-    }
-    const run = () => {
-      if (!frame && visible && !still.matches) {
-        last = 0;
-        frame = requestAnimationFrame(tick);
-      }
-    };
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        visible = entries[entries.length - 1].isIntersecting;
-        run();
-      },
-      { rootMargin: '120px 0px' },
-    );
-    observer.observe(root);
+    let clock = 0;
     draw(clock);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-    };
+    return animateInView(
+      root,
+      (seconds) => {
+        clock = (clock + seconds) % LOOP;
+        draw(clock);
+      },
+      () => draw(STILL),
+    );
   }, []);
 
   return (
