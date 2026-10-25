@@ -1,4 +1,5 @@
 import { getSiteState } from '@/lib/siteState';
+import { createAudioContext } from '@/lib/audioContext';
 
 // Small interface sounds, synthesized on demand so there are no files to load.
 // Every sound follows a click or key press, which is what lets browsers play it.
@@ -180,7 +181,7 @@ const sounds: Record<
 export function playSound(name: keyof typeof sounds) {
   if (!getSiteState().uiSound) return;
   try {
-    context ??= new AudioContext();
+    context ??= createAudioContext();
     if (context.state === 'suspended') void context.resume();
     room ??= roomOf(context);
     const sound = sounds[name];

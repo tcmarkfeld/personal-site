@@ -1,3 +1,5 @@
+import { createAudioContext } from '@/lib/audioContext';
+
 // Synthesized surf: looping brown noise, low-passed, swelling on a slow LFO.
 let context: AudioContext | undefined;
 let master: GainNode | undefined;
@@ -43,7 +45,7 @@ function build(ctx: AudioContext) {
 export function setAmbience(on: boolean) {
   window.clearTimeout(suspendTimer);
   if (on) {
-    context ??= new AudioContext();
+    context ??= createAudioContext();
     master ??= build(context);
     void context.resume();
     master.gain.setTargetAtTime(0.25, context.currentTime, 0.8);
